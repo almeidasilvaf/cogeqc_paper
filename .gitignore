@@ -2,3 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
+code/*.log
+code/combine_plots.R
+products/plots/og_sizes_plot.rda
