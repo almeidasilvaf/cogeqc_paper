@@ -5,3 +5,5 @@
 code/*.log
 code/combine_plots.R
 products/plots/og_sizes_plot.rda
+data/*.Rmd
+data/brassicaceae_proteomes.rda
