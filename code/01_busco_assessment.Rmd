@@ -1,0 +1,257 @@
+---
+title: "Supplementary Text S1: Assessing the completeness of Chlorophyta genomes"
+shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+author:
+  - name: Fabricio Almeida-Silva
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+  - name: Yves Van de Peer
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+    - College of Horticulture, Academy for Advanced Interdisciplinary Studies, Nanjing Agricultural University, Nanjing, China
+    - Center for Microbial Ecology and Genomics, Department of Biochemistry, Genetics and Microbiology, University of Pretoria, Pretoria, South Africa
+bibliography: bibliography.bib
+output:
+  BiocStyle::pdf_document
+vignette: |
+  %\VignetteIndexEntry{Supplementary Text S1: Assessing the completeness of Chlorophyta genomes}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE, 
+    message = FALSE,
+    eval = FALSE
+)
+```
+
+```{r here, warning = FALSE, message = FALSE, eval = TRUE}
+library(here)
+library(cogeqc)
+library(tidyverse)
+library(Herper)
+
+set.seed(123) # for reproducibility
+options(timeout = 6000) # to load files from the web
+```
+
+# Overview
+
+Here, we will use `r BiocStyle::Biocpkg("cogeqc")` to assess the completeness 
+of Chlorophyta genomes available on Pico-PLAZA 3.0 [@van2018plaza] using 
+Best Universal Single-Copy Orthologs (BUSCO).
+
+# Managing external dependencies with virtual environments
+
+Here, for convenience, we will install BUSCO in a Conda environment for use
+with `r BiocStyle::Biocpkg("cogeqc")`. For that, we will use
+the Bioconductor package `r BiocStyle::Biocpkg("Herper")`
+
+Below, you can find the code to install miniconda in a directory of your
+choice (here, "~/Documents") and create a virtual environment containing
+a BUSCO installation.
+
+
+```{r installing_busco}
+# Path to where BUSCO will be installed and env name
+my_miniconda <- file.path("~/Documents", "miniconda")
+env <- "cogeqc_env"
+
+# Create env named `cogeqc_env` with BUSCO in it
+install_CondaTools(
+    tools = "busco==5.3.0", 
+    env = env, 
+    channels = c("conda-forge", "bioconda"),
+    pathToMiniConda = my_miniconda
+)
+```
+
+# Data acquisition
+
+Now, we will load all genomes directly from PLAZA as `DNAStringSet` objects
+and export them to a single directory of FASTA files, so we can run
+BUSCO in batch mode.
+
+```{r download, eval = TRUE}
+# Links to Chlorophyta genomes from Pico-PLAZA 3.0
+base_url <- "ftp://ftp.psb.ugent.be/pub/plaza/plaza_pico_03/Genomes/"
+links <- paste0(
+    base_url, 
+    c("mpu.fasta.gz", "mrcc299.fasta.gz", "olu.fasta.gz", "ome.fasta.gz",
+      "orcc809.fasta.gz", "ota.fasta.gz", "bprrcc1105.fasta.gz",
+      "cre.fasta.gz", "vca.fasta.gz", "cvu.fasta.gz", "acg.fasta.gz",
+      "pse3.fasta.gz", "prcc4223.fasta.gz", "cnc64a.fasta.gz", 
+      "hsp.fasta.gz", "apr.fasta.gz")
+)
+
+# Load all genomes
+genomes <- lapply(links, Biostrings::readDNAStringSet)
+names(genomes) <- basename(links)
+
+# Write all genomes to a subdirectory of tempdir
+genomes_path <- file.path(tempdir(), "genomes")
+if(!dir.exists(genomes_path)) { fs::dir_create(genomes_path) }
+
+write <- lapply(seq_along(genomes), function(x) {
+    Biostrings::writeXStringSet(
+        x = genomes[[x]], 
+        filepath = file.path(genomes_path, names(genomes)[x])
+    )
+    return(NULL)
+})
+
+dir(genomes_path)
+```
+
+# Running BUSCO
+
+Now that all genomes are stored as FASTA files in `r genomes_path`, we
+can assess their completeness with BUSCO.
+
+```{r run_busco}
+# See all possible lineage datasets
+with_CondaEnv(
+    env, list_busco_datasets(), my_miniconda
+)
+
+# Run BUSCO using chlorophyta_odb10 as the lineage data set
+busco <- with_CondaEnv(
+    env,
+    run_busco(
+        sequence = genomes_path, 
+        outlabel = "chlorophyta_busco",
+        mode = "genome",
+        lineage = "chlorophyta_odb10",
+        outpath = tempdir(),
+        download_path = tempdir()
+    ),
+    my_miniconda
+)
+
+# Read and parse the output
+outdir <- file.path(tempdir(), "chlorophyta_busco")
+busco_summary <- read_busco(outdir)
+save(
+    busco_summary,
+    file = here::here("products", "result_files", "busco_summary.rda"),
+    compress = "xz"
+)
+```
+
+The parsed BUSCO output (as returned by `read_busco()`) looks like this:
+
+```{r read_busco, eval = TRUE}
+load(here("products", "result_files", "busco_summary.rda"))
+head(busco_summary)
+```
+
+
+# Visualizing summary statistics
+
+Finally, let's visualize summary BUSCO stats:
+
+```{r viz_busco, eval = TRUE, fig.width=13, fig.height=8, dpi=200}
+# Manually create tree based on Pico-PLAZA's tree
+c_branches <- function(b1, b2) {
+    x <- paste0("(", b1, ",", b2, ")")
+}
+
+ostreococcus_root <- "((((Ostreococcus_lucimarinus, Ostreococcus_sp_RCC809), Ostreococcus_tauri), Ostreococcus_mediterraneus), Bathycoccus_prasinos)"
+micromonas <- "(Micromonas_pusilla_strain_CCMP1545, Micromonas_sp_RCC299)"
+chlamydomonadales <- "(Volvox_carteri, Chlamydomonas_reinhardtii)"
+picochlorum <- "(Picochlorum_sp_SENEW3, Picochlorum_RCC4223)"
+chlorellales <- "((Helicosporidium_sp, Auxenochlorella_protothecoides), Chlorella_sp_NC64A)"
+trebouxiophyceae <- c_branches(
+    "(Coccomyxa_subellipsoidea_C-169, Asterochloris_sp_Cgr/DA1pho_v2)", 
+    c_branches(picochlorum, chlorellales)
+)
+
+chlo_tree <- c_branches(
+    c_branches(
+        ostreococcus_root, micromonas
+    ),
+    c_branches(
+        chlamydomonadales, trebouxiophyceae
+    )
+)
+chlo_tree <- paste0(chlo_tree, ";")
+
+# Read tree as a phylo object and clean species names
+chlo_tree <- treeio::read.tree(text = chlo_tree)
+chlo_tree$tip.label <- gsub("_", " ", chlo_tree$tip.label)
+
+# Plot species tree and get species order from tree topology
+p_tree <- plot_species_tree(chlo_tree, xlim = c(0, 12))
+taxa_order <- rev(ggtree::get_taxa_name(p_tree)) 
+
+# Plot BUSCO summary stats
+p_busco <- busco_summary %>%
+    mutate(File = str_replace_all(File, "\\.fasta.*", "")) %>%
+    mutate(File = str_replace_all(
+        File,
+        c(
+            "pse3" = "Picochlorum sp SENEW3",
+            "cre" = "Chlamydomonas reinhardtii",
+            "olu" = "Ostreococcus lucimarinus",
+            "mrcc299" = "Micromonas sp RCC299",
+            "apr" = "Auxenochlorella protothecoides",
+            "acg" = "Asterochloris sp Cgr/DA1pho v2",
+            "cvu" = "Coccomyxa subellipsoidea C-169",
+            "bprrcc1105" = "Bathycoccus prasinos",
+            "orcc809" = "Ostreococcus sp RCC809",
+            "prcc4223" = "Picochlorum RCC4223",
+            "ota" = "Ostreococcus tauri",
+            "hsp" = "Helicosporidium sp",
+            "mpu" = "Micromonas pusilla strain CCMP1545",
+            "vca" = "Volvox carteri",
+            "ome" = "Ostreococcus mediterraneus",
+            "cnc64a" = "Chlorella sp NC64A"
+        )
+    )) %>%
+    mutate(File = factor(File, taxa_order)) %>%
+    plot_busco() +
+    theme(axis.text.y = element_blank()) +
+    labs(y = "")
+
+# Combining phylogeny with BUSCO plot
+combined <- patchwork::wrap_plots(p_tree, p_busco)
+combined
+```
+
+Except for *Helicosporidium sp.*, Chlorophyta genomes on Pico-PLAZA 3.0 have
+a high quality, as denoted by their high completeness.
+
+```{r saving_figs, echo = FALSE}
+save(
+    p_busco, 
+    file = here("products", "plots", "plot_busco.rda"), 
+    compress = "xz"
+)
+
+save(
+    p_tree, 
+    file = here("products", "plots", "plot_tree_chlorophyta.rda"), 
+    compress = "xz"
+)
+
+save(
+    combined, 
+    file = here("products", "plots", "combined_tree_chlorophyta.rda"), 
+    compress = "xz"
+)
+```
+
+# Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessioninfo, eval = TRUE}
+sessioninfo::session_info()
+```
+
+# References {.unnumbered}
