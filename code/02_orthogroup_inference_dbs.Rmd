@@ -1,0 +1,320 @@
+---
+title: "Supplementary Text S2: Assessing orthogroup inference in public databases"
+shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+author:
+  - name: Fabricio Almeida-Silva
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+  - name: Yves Van de Peer
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+    - College of Horticulture, Academy for Advanced Interdisciplinary Studies, Nanjing Agricultural University, Nanjing, China
+    - Center for Microbial Ecology and Genomics, Department of Biochemistry, Genetics and Microbiology, University of Pretoria, Pretoria, South Africa
+bibliography: bibliography.bib
+output:
+  BiocStyle::pdf_document
+vignette: |
+  %\VignetteIndexEntry{Supplementary Text S2: Assessing orthogroup inference in public databases}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE, 
+    message = FALSE,
+    eval = FALSE
+)
+```
+
+```{r here, warning = FALSE, message = FALSE, eval = TRUE}
+library(cogeqc)
+library(here)
+library(tidyverse)
+library(ggpubr)
+
+set.seed(123) # for reproducibility
+source(here("code", "utils.R"))
+```
+
+# Overview
+
+Here, we will use the protein domain-based approach 
+in `r BiocStyle::Biocpkg("cogeqc")` to assess gene families from 
+different sources, namely:
+
+- PLAZA Dicots 5.0 [@van2022plaza]
+- OrthoDB [@zdobnov2021orthodb]
+- eggNOG [@huerta2019eggnog]
+- HOGENOM [@penel2009databases]
+- @qiao2019gene
+
+# Orthogroup assessment
+
+To make comparison possible, we will *Arabidopsis thaliana* domain annotation
+as a proxy, as this species is present in all of the aforementioned databases.
+For that, we will use the function `calculate_H()` from 
+`r BiocStyle::Biocpkg("cogeqc")`.
+
+Orthogroups assignments from OrthoDB, eggNOG, InParanoid, PhylomeDB, and
+HOGENOM will be obtained from UniProt.
+
+## PLAZA Dicots 5.0
+
+Below, we will obtain orthogroups and *A. thaliana*'s domain annotation from
+PLAZA 5.0, and then we will calculate homogeneity scores for each orthogroup.
+
+```{r plaza, eval = TRUE}
+# Obtain gene families from PLAZA
+fams_plaza <- readr::read_tsv(
+    paste0(
+        "https://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_05/",
+        "GeneFamilies/genefamily_data.HOMFAM.csv.gz"
+    ), show_col_types = FALSE, skip = 2
+) %>%
+    filter(species == "ath") %>%
+    as.data.frame()
+names(fams_plaza) <- c("Orthogroup", "Species", "Gene")
+head(fams_plaza)
+
+# Obtain domain anotation for A. thaliana
+ath_interpro <- readr::read_tsv(
+    paste0(
+        "https://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_05/",
+        "InterPro/interpro.ath.csv.gz"
+    ), show_col_types = FALSE, skip = 8
+) %>%
+    select(1,3)
+names(ath_interpro) <- c("Gene", "Annotation")
+head(ath_interpro)
+
+# Combining everything and calculating homogeneity scores
+fam_df_plaza <- merge(fams_plaza, ath_interpro)
+head(fam_df_plaza)
+
+H_summary <- function(ortho_df = NULL) {
+    H <- calculate_H(ortho_df)
+    mean_H <- round(mean(H$Score), 2)
+    median_H <- round(median(H$Score), 2)
+    result_list <- list(H = H, mean_score = mean_H, median_score = median_H)
+    return(result_list)
+}
+
+H_plaza <- H_summary(fam_df_plaza)
+head(H_plaza$H)
+```
+
+
+## Qiao *et al.*, 2019. Genome Biology
+
+Orthogroups from @qiao2019gene are available in [this FigShare repository](https://figshare.com/articles/dataset/Gene_duplication_and_evolution_in_recurring_polyploidization-diploidization_cycles_in_plants/7264667/1). 
+The orthogroups information are in the *Orthogroups.csv.zip* file.
+
+```{r qiao_et_al}
+# Download file and unzip it
+download.file(
+    url = "https://figshare.com/ndownloader/files/13382270",
+    destfile = file.path(tempdir(), "Orthogroups.zip")
+)
+unzip(
+    zipfile = file.path(tempdir(), "Orthogroups.zip"),
+    exdir = tempdir()
+)
+
+# Get orthogroups
+## This file is an old OrthoFinder output without "Orthogroup" in the first row
+## Let's add it manually, so it can be parsed with read_orthogroups
+og_file <- file.path(tempdir(), "Orthogroups.csv")
+l <- readLines(og_file)
+l[1] <- paste0("Orthogroup", l[1])
+writeLines(l, con = og_file)
+
+## Read and parse file
+fam_qiao <- cogeqc::read_orthogroups(og_file) %>%
+    mutate(Species = str_replace_all(Species, "\\.pep.*", "")) %>%
+    filter(Species == "Ath") %>%
+    mutate(Gene = str_replace_all(Gene, "\\.[0-9]$", "")) %>%
+    as.data.frame()
+
+# Combining everything and calculating homogeneity scores
+fam_df_qiao <- merge(fam_qiao, ath_interpro)
+H_qiao <- H_summary(fam_df_qiao)
+```
+
+```{r cleaning, eval = TRUE, echo = FALSE}
+invisible(gc())
+```
+
+## OrthoDB, eggNOG, and HOGENOM
+
+Orthogroup assignments from these databases will be obtained from 
+UniProt [@uniprot2021uniprot].
+
+```{r uniprot}
+# Get list of proteins - from primary transcripts only
+ath_proteome <- Biostrings::readAAStringSet(
+    paste0(
+        "https://ftp.uniprot.org/pub/databases/uniprot/",
+        "current_release/knowledgebase/reference_proteomes/Eukaryota/",
+        "UP000006548/UP000006548_3702.fasta.gz"
+    )
+)
+ath_proteins <- names(ath_proteome)
+ath_proteins <- sapply(strsplit(ath_proteins, split = "\\|"), `[`, 2)
+
+# Extract phylogenomic information for all genes
+source(here::here("code", "utils.R"))
+fams_uniprot <- extract_ogs_uniprot(ath_proteins)
+
+fams_orthodb <- fams_uniprot[, c("Gene", "OrthoDB")] %>% drop_na()
+fams_eggnog <- fams_uniprot[, c("Gene", "eggNOG")] %>% drop_na()
+fams_hogenom <- fams_uniprot[, c("Gene", "HOGENOM")] %>% drop_na()
+
+#----Calculate homogeneity scores for each database-----------------------------
+# OrthoDB
+fams_df_orthodb <- merge(fams_orthodb, ath_interpro)
+names(fams_df_orthodb)[2] <- "Orthogroup"
+H_orthodb <- H_summary(fams_df_orthodb)
+
+# eggNOG
+fams_df_eggnog <- merge(fams_eggnog, ath_interpro)
+names(fams_df_eggnog)[2] <- "Orthogroup"
+H_eggnog <- H_summary(fams_df_eggnog)
+
+# HOGENOM
+fams_df_hogenom <- merge(fams_hogenom, ath_interpro)
+names(fams_df_hogenom)[2] <- "Orthogroup"
+H_hogenom <- H_summary(fams_df_hogenom)
+```
+
+# Comparing homogeneity scores
+
+Finally, let's compare homogeneity scores and visualize their distributions.
+First, let's combine all data frames of homogeneity scores into a single
+data frame.
+
+```{r comparison}
+H_combined <- bind_rows(
+    H_plaza$H %>% mutate(Source = "PLAZA"),
+    H_qiao$H %>% mutate(Source = "Qiao et al."),
+    H_orthodb$H %>% mutate(Source = "OrthoDB"),
+    H_eggnog$H %>% mutate(Source = "eggNOG"),
+    H_hogenom$H %>% mutate(Source = "HOGENOM")
+)
+
+save(
+    H_combined,
+    file = here::here("products", "result_files", "H_combined.rda"),
+    compress = "xz"
+)
+```
+
+```{r load_combined, echo = FALSE, eval = TRUE}
+load(here::here("products", "result_files", "H_combined.rda"))
+```
+
+Now, let's compare the distributions of homogeneity scores for each database
+to see if there are any differences. For that, we will calculate P-values
+from a Wilcoxon test with Wicoxon effect sizes (r). The Wilcoxon effect size
+is calculated as the Z statistic divided by the square root of the sample size.
+
+```{r compare_summary_stats, eval = TRUE}
+# Scale scores to maximum, so that they range from 0 to 1
+H_combined$Score <- H_combined$Score / max(H_combined$Score)
+head(H_combined)
+
+# Quick exploration of means and medians
+H_combined %>%
+    group_by(Source) %>%
+    summarise(mean = mean(Score), median = median(Score))
+
+# Compare homogeneity scores - all vs all
+db_wilcox <- compare(H_combined, "Score ~ Source")
+
+db_wilcox[db_wilcox$padj_interpretation != "ns", ]
+```
+
+We can see that there are diffences in mean. In summary:
+
+1. eggNOG orthogroups have lower scores than every other source
+
+2. HOGENOM orthogroups have higher scores than OrthoDB, but lower than 
+Qiao *et al.* and PLAZA.
+
+3. Orthogroups scores from Qiao *et al* are higher than all other sources.
+
+4. Among the databases (excluding Qiao *et al*), PLAZA orthogroup scores are
+higher than every other database.
+
+
+However, the effect sizes are very small, suggesting that significant 
+differences could be due to large sample sizes, as P-values are highly
+affected by sample sizes.
+
+Now, let's visualize the distributions with significant differences 
+highlighted. Here, we will only display comparison bars for comparisons with
+*P* < 0.05 and effect sizes > 0.1.
+
+```{r visualize_distros, eval = TRUE, warning = FALSE, message = FALSE, dpi = 200}
+# Comparisons to be made
+comps <- list(
+    c("Qiao et al.", "PLAZA"),
+    c("Qiao et al.", "HOGENOM"),
+    c("Qiao et al.", "OrthoDB"),
+    c("Qiao et al.", "eggNOG"),
+    c("HOGENOM", "eggNOG")
+)
+
+# Change order of levels according to comparison results
+H_combined$Source <- factor(
+    H_combined$Source, levels = rev(c(
+        "Qiao et al.", "PLAZA", "HOGENOM", "OrthoDB", "eggNOG"
+    ))
+)
+
+# Visualize distributions with significant differences highlighted
+distros <- ggviolin(
+    H_combined, y = "Score", x = "Source", 
+    orientation = "horiz", trim = TRUE, add = "boxplot", 
+    fill = "Source", add.params = list(fill = "white"), palette = "jama"
+) +
+    ggpubr::stat_compare_means(
+        comparisons = comps,
+        label = "p.signif",
+        method = "wilcox.test"
+    ) +
+    theme(legend.position = "none") +
+    labs(y = "Scaled homogeneity scores", x = "Source of orthogroups",
+         title = "Distribution of mean homogeneity scores for orthogroups",
+         subtitle = "Scores were calculated based on *A. thaliana* genes") +
+    theme(plot.subtitle = ggtext::element_markdown())
+
+distros
+```
+
+To conclude, despite some significant differences, all databases perform 
+equally well in their orthogroup definition. The observed differences in means
+could be due to large sample sizes, as indicated by very low effect sizes,
+and to the different species composition of the database.
+
+```{r echo = FALSE}
+# Save plot object
+save(
+    distros,
+    file = here("products", "plots", "plot_homogeneity_scores_dbs.rda"),
+    compress = "xz"
+)
+```
+
+# Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessioninfo, eval = TRUE}
+sessioninfo::session_info()
+```
+
+# References {.unnumbered}
