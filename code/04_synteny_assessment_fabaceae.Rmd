@@ -1,0 +1,355 @@
+---
+title: "Supplementary Text S4: Assessing synteny detection in Fabaceae"
+shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+author:
+  - name: Fabricio Almeida-Silva
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+  - name: Yves Van de Peer
+    affiliation: 
+    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
+    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
+    - College of Horticulture, Academy for Advanced Interdisciplinary Studies, Nanjing Agricultural University, Nanjing, China
+    - Center for Microbial Ecology and Genomics, Department of Biochemistry, Genetics and Microbiology, University of Pretoria, Pretoria, South Africa
+bibliography: bibliography.bib
+output:
+  BiocStyle::pdf_document
+vignette: |
+  %\VignetteIndexEntry{Supplementary Text S4: Assessing synteny detection in Fabaceae}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+    echo = TRUE,
+    warning = FALSE, 
+    message = FALSE,
+    eval = FALSE
+)
+```
+
+```{r here, warning = FALSE, message = FALSE, eval = TRUE}
+library(cogeqc)
+library(here)
+library(tidyverse)
+library(syntenet)
+library(tidytext)
+```
+
+# Overview
+
+Here, we will assess synteny detection using a network-based approach. 
+The anchor pairs from synteny identification will be interpreted as edges of 
+an unweighted undirected graph (i.e., a synteny network), and the best 
+synteny detection will be identified based on the graphs' clustering 
+coefficients and node number. 
+
+We will demonstrate our network-based synteny assessment using genomic data on
+Fabaceae species available on PLAZA 5.0 [@van2022plaza].
+
+# Data acquisition
+
+In this section, we will download whole-genome protein sequences and 
+gene annotation from PLAZA 5.0, and then we will preprocess the data with
+`syntenet::process_input()`.
+
+```{r species, eval = TRUE}
+species <- c("mtr", "tpr", "psa", "car", "lja", "gma", "vmu", "lal", "arhy")
+```
+
+```{r data_acquisition_fabaceae_plaza}
+base_url <- "https://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_05/"
+
+# Get proteomes
+seq_url <- paste0(
+    base_url, "Fasta/proteome.selected_transcript.", 
+    species, ".fasta.gz"
+)
+
+## Import files and clean gene IDs
+seq <- lapply(seq_url, function(x) {
+    s <- Biostrings::readAAStringSet(x)
+    names(s) <- gsub(".* | ", "", names(s))
+    return(s)
+})
+names(seq) <- species
+
+
+# Get gene annotation
+annot_url <- paste0(
+    base_url, "GFF/", species, "/annotation.selected_transcript.exon_features.",
+    species, ".gff3.gz"
+)
+
+## Import files and keep only relevant fields
+annot <- lapply(annot_url, function(x) {
+    a <- rtracklayer::import(x)
+    a <- a[, c("type", "gene_id")]
+    a <- a[a$type == "gene"]
+    return(a)
+})
+names(annot) <- species
+
+# Process data
+pdata <- process_input(seq, annot)
+
+# Remove unprocessed data to clean the working environment
+rm(annot)
+rm(seq)
+```
+
+```{r save_pdata, echo = FALSE}
+save(
+    pdata, compress = "xz",
+    file = "~/Documents/intermediate_data/cogeqc_benchmark/pdata.rda"
+)
+```
+
+```{r load_pdata, echo = FALSE}
+load("~/Documents/intermediate_data/cogeqc_benchmark/pdata.rda")
+```
+
+# Network-based synteny assessment
+
+We will infer synteny networks using the Bioconductor package 
+`r BiocStyle::Biocpkg("syntenet")`. This package detects synteny
+using the MCScanX algorithm [@wang2012mcscanx], which can produce different
+results based on 2 main parameters:
+
+1. **anchors:** minimum required number of genes to call a syntenic block. 
+Default: 5.
+2. **max_gaps:** number of upstream and downstream genes to search for anchors.
+Default: 25.
+
+We will infer synteny networks with 5 combinations of parameters, similarly
+to @zhao2019network, using two approaches:
+
+1. A single Fabaceae synteny network;
+2. Species-specific synteny networks for each Fabaceae species.
+
+To start with, let's define the combinations of parameters
+we will use.
+
+```{r data_acquisition, eval = TRUE}
+# Define combinations of parameters: anchors (a), max_gaps (m)
+synteny_params <- list(
+    c(3, 25),
+    c(5, 15),
+    c(5, 25),
+    c(5, 35),
+    c(7, 25)
+)
+```
+
+## Assessing the Fabaceae synteny network
+
+First, we will perform similarity searches with DIAMOND.
+
+```{r fabaceae_diamond}
+# Define wrapper function to run DIAMOND with different top_hits
+out <- file.path(tempdir(), "diamond_all")
+d5 <- run_diamond(seq = seq, top_hits = 5, outdir = out)
+```
+
+```{r save_diamond_fabaceae, echo = FALSE}
+save(
+    d5, compress = "xz",
+    file = "~/Documents/intermediate_data/cogeqc_benchmark/d5.rda"
+)
+```
+
+With the DIAMOND list, we can detect synteny.
+
+```{r load_diamond_fabaceae, echo = FALSE}
+load("~/Documents/intermediate_data/cogeqc_benchmark/d5.rda")
+```
+
+```{r detect_synteny_fabaceae}
+# Define helper function to detect synteny with multiple combinations of params
+synteny_wrapper <- function(diamond, annotation, params) {
+    
+    syn <- lapply(params, function(x) {
+        
+        anchors <- x[1]
+        max_gaps <- x[2]
+        outdir <- file.path(tempdir(), paste0("syn_a", anchors, "_m", max_gaps))
+        
+        s <- infer_syntenet(
+            blast_list = diamond,
+            annotation = pdata$annotation,
+            outdir = outdir, 
+            anchors = anchors,
+            max_gaps = max_gaps
+        )
+        return(s)
+    })
+    return(syn)
+}
+
+# Detect synteny
+syn_fabaceae <- synteny_wrapper(d5, pdata$annotation, synteny_params)
+names(syn_fabaceae) <- unlist(
+    lapply(synteny_params, function(x) paste0("a", x[1], "_m", x[2]))
+)
+```
+
+```{r save_synteny_brassicaceae, echo = FALSE}
+save(
+    syn_fabaceae, compress = "xz", 
+    file = "~/Documents/intermediate_data/cogeqc_benchmark/syn_fabaceae.rda"
+)
+```
+
+```{r load_synteny_brassicaceae, echo = FALSE, eval = TRUE}
+load("~/Documents/intermediate_data/cogeqc_benchmark/syn_fabaceae.rda")
+```
+
+Now, let's use the network-based synteny assessment to see which combination
+of parameters is the best.
+
+```{r assess_synteny_fabaceae, eval = TRUE}
+# Assess networks
+fabaceae_scores <- assess_synnet_list(syn_fabaceae)
+
+# Look at scores, ranked from highest to lowest
+fabaceae_scores %>%
+    arrange(-Score)
+```
+
+As we can see, the combination of parameters `a = 3; m = 25` is
+the best for this data set. 
+
+Finally, let's visualize scores. To make visualization better, we will scale
+scores by the maximum value, so that values range from 0 to 1.
+
+```{r viz_fabaceae, eval = TRUE, fig.height=6, fig.width=8}
+# Plot scores
+synteny_scores_fabaceae <- fabaceae_scores %>%
+    arrange(Score) %>%
+    mutate(Score = Score / max(Score)) %>%
+    mutate(Parameters = str_replace_all(Network, "_", ", ")) %>%
+    mutate(Parameters = factor(Parameters, levels = unique(Parameters))) %>%
+    ggplot(., aes(x = Parameters, y = Score)) +
+    geom_col(fill = "grey60", color = "black") +
+    coord_flip() +
+    theme_bw() +
+    labs(
+        title = "Assessment of the Fabaceae synteny network",
+        subtitle = "a = minimum # of anchors; m = maximum # of gaps",
+        y = "Scaled score"
+    )
+    
+synteny_scores_fabaceae
+```
+
+```{r echo = FALSE, eval = FALSE}
+save(
+    synteny_scores_fabaceae, compress = "xz",
+    file = here("products", "plots", "synteny_scores_fabaceae.rda")
+)
+```
+
+## Assessing species-specific synteny networks
+
+In this section, we will infer species-specific synteny networks and
+assess each of them with our network-based approach.
+
+This time, as we already have synteny networks for the whole Fabaceae family,
+we don't need to infer them again; we will simply subset edges of the network
+that contain nodes from the same species.
+
+```{r species_networks, eval = TRUE}
+# Create species-specific networks
+species_ids <- substr(species, start = 1, stop = 3)
+
+species_networks <- lapply(species_ids, function(x) {
+    
+    nets <- lapply(syn_fabaceae, function(y) {
+        edges <- y[startsWith(y$Anchor1, x) & startsWith(y$Anchor2, x), ]
+        return(edges)
+    })
+    return(nets)
+})
+names(species_networks) <- species_ids
+
+# Exploring data
+names(species_networks)
+names(species_networks$mtr)
+
+# Rename `species_networks` to keep full name
+names(species_networks) <- c(
+    "M. truncatula", "T. pratense", "P. sativum", "C. arietinum",
+    "L. japonicus", "G. max", "V. mungo", "L. albus", "A. hypogaea"
+)
+```
+
+For each species, we will assess the networks inferred with different 
+combinations of parameters.
+
+```{r assess_species_networks, eval = TRUE, fig.width = 8, fig.height = 6}
+# Assess species-specific networks
+scores_species_nets <- lapply(seq_along(species_networks), function(x) {
+    
+    species <- names(species_networks)[x]
+    scores <- assess_synnet_list(species_networks[[species]])
+    scores$Score[is.nan(scores$Score)] <- 0
+    scores <- scores[order(scores$Score, decreasing = TRUE), ]
+    scores$Species <- species
+    scores$Score <- scores$Score / max(scores$Score)
+    return(scores)
+})
+scores_species_nets <- Reduce(rbind, scores_species_nets)
+
+# Plot data
+synteny_scores_species <- scores_species_nets %>%
+    mutate(
+        Parameters = as.factor(str_replace_all(Network, "_", ", ")),
+        Species = as.factor(Species)
+    ) %>%
+    mutate(Network = reorder_within(Parameters, Score, Species)) %>%
+    ggplot(., aes(x = Network, y = Score, fill = Parameters)) +
+    geom_bar(stat = "identity", color = "grey90") +
+    facet_wrap(~Species, ncol = 3, scales = "free") +
+    scale_x_reordered() +
+    ggsci::scale_fill_jama() +
+    theme_bw() +
+    theme(axis.text.x = element_blank()) +
+    labs(
+        title = "Assessment of species-specific synteny networks",
+        subtitle = "a = minimum # of anchors; m = maximum # of gaps",
+        y = "Scaled score (by species)", x = ""
+    )
+    
+synteny_scores_species
+```
+
+```{r echo = FALSE, eval = FALSE}
+save(
+    synteny_scores_species, compress = "xz",
+    file = here("products", "plots", "synteny_scores_species.rda")
+)
+```
+
+The figure demonstrates that the best combination of parameters depends on the
+species, so there is no "universally" best combination. However, some 
+patterns emerge. The combinations `a = 7; m= 25` and `a = 5; m = 15` are 
+typically the worst. In some cases, they even lead to zero scores due to 
+clustering coefficients of zero. Thus, if users want to test multiple 
+combinations of parameters for their own data set, they should only test the
+combinations `a = 3; m = 25`, `a = 5; m = 25`, and `a = 5; m = 35`, which lead 
+to the best score in 45%, 33%, and 22% of the species-specific networks,
+respectively. Interestingly, the combination that leads to the best score in
+most networks (`a = 3; m = 25`) is also the best when considering the whole
+Fabaceae synteny network (see previous section).
+
+# Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessioninfo, eval = TRUE, echo = FALSE}
+sessioninfo::session_info()
+```
+
+# References {.unnumbered}
