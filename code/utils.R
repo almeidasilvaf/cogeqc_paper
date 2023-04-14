@@ -91,8 +91,21 @@ compare <- function(data, form, ref = NULL) {
     
     
     result <- as.data.frame(inner_join(wilcox_summary, effsize))
+        
     return(result)
 }
 
 
+filter_comparison <- function(compare_output) {
+    
+    filtered_df <- compare_output |>
+        dplyr::filter(padj_interpretation != "ns") |>
+        mutate(padj = case_when(
+            padj_interpretation == "greater" ~ padj_greater,
+            padj_interpretation == "less" ~ padj_less
+        )) |>
+        dplyr::select(group1, group2, n1, n2, padj, effsize, magnitude)
+    
+    return(filtered_df)
+}
 

@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Text S3: Assessing orthogroup inference for Brassicaceae genomes"
-shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
     affiliation: 
@@ -34,12 +34,12 @@ knitr::opts_chunk$set(
 library(here)
 library(cogeqc)
 library(tidyverse)
-library(dplyr)
 library(ggpubr)
 library(rstatix)
 library(clusterProfiler)
 library(enrichplot)
 library(patchwork)
+library(dplyr)
 
 source(here("code", "utils.R"))
 ```
@@ -142,7 +142,7 @@ Let's explore OG sizes for each combination of parameters and filter
 orthogroups by size to remove orthogroups that are
 artificially large.
 
-```{r filter_og_by_size}
+```{r filter-og-by-size}
 # Visualize OG sizes
 og_sizes_plot <- patchwork::wrap_plots(
     plot_og_sizes(ogs$default_1) + ggtitle("Default, mcl = 1"), 
@@ -174,7 +174,7 @@ ggsave(
 )
 ```
 
-```{r load_fig, echo = FALSE, eval = TRUE, dpi = 200}
+```{r load-fig, echo = FALSE, eval = TRUE, dpi = 200, fig.cap="Orthogroup sizes for each run."}
 knitr::include_graphics(here("products", "plots", "og_sizes_plot.png"))
 ```
 
@@ -253,7 +253,7 @@ save(
 )
 ```
 
-```{r show_plot2, echo = FALSE, eval = TRUE, fig.width = 10, fig.height = 5}
+```{r show-plot2, echo = FALSE, eval = TRUE, fig.width = 10, fig.height = 5, fig.cap="Percentage of orthogroups with >50, >100, and >200 genes for each run."}
 load(here("products", "plots", "relationship_og_number_and_size.rda"))
 
 percentage_plot
@@ -367,7 +367,7 @@ Here, we will compare and visualize how the homogeneity scores are affected by:
 
 Quick exploration of median and mean homogeneity:
 
-```{r overall_stats, eval = TRUE}
+```{r overall-stats, eval = TRUE}
 load(here("products", "result_files", "og_assessment_brassicaceae.rda"))
 
 # Scale value to the maximum so that values range from 0 to 1
@@ -375,14 +375,19 @@ og_assessment$Median_score <- og_assessment$Median_score /
     max(og_assessment$Median_score)
 
 # Mean
-og_assessment %>%
+mean_og <- og_assessment %>%
     group_by(Mode) %>%
     summarise(mean = mean(Median_score))
 
 # Median
-og_assessment %>%
+median_og <- og_assessment %>%
     group_by(Mode) %>%
     summarise(median = median(Median_score))
+
+mean_and_median_og <- inner_join(mean_og, median_og) |>
+    dplyr::rename(Mean = mean, Median = median)
+
+knitr::kable(mean_and_median_og, caption = "Mean and median OG scores.", digits = 3)
 ```
 
 ## Global distributions
@@ -391,7 +396,7 @@ Here, we will compare and visualize all distros considering different
 DIAMOND modes and mcl inflation values. To start, let's perform Wilcoxon tests
 for all combinations of modes and obtain effect sizes.
 
-```{r og_distros_compare, eval = TRUE}
+```{r og-distros-compare, eval = TRUE}
 # Relevel 'Mode' factor
 og_assessment$Mode <- factor(
     og_assessment$Mode, 
@@ -403,13 +408,12 @@ og_assessment$Mode <- factor(
 
 # Comparing all vs all
 comp_global <- compare(og_assessment, "Median_score ~ Mode")
-comp_global
-
-# Comparing to the default mode (default DIAMOND, mcl = 1.5)
-comp_global_default <- compare(
-    og_assessment, "Median_score ~ Mode", "default_1_5"
-)
-comp_global_default
+comp_global |>
+    filter_comparison() |>
+    knitr::kable(
+        caption = "Mann-Whitney U test for differences in orthogroup scores with Wilcoxon effect sizes.",
+        digits = 10
+    )
 ```
 
 As we can see, using mcl = 1 leads to much smaller homogeneity scores as 
@@ -426,14 +430,14 @@ Now, let's visualize the distributions and compare the default OrthoFinder
 mode with every other mode, highlighting significant differences
 (*P* < 0.05) with effect size > 0.1.
 
-```{r og_distros_viz, eval = TRUE, fig.width=8, fig.height=6}
+```{r og-distros-viz, eval = TRUE, fig.width=8, fig.height=6, fig.cap = "Distribution of mean orthogroup scores for each OrthoFinder run."}
 # Visualize
 global_comps <- list(
     c("default_1_5", "ultra_1"),
     c("default_1_5", "default_1")
 ) 
 
-p_distros <- ggviolin(
+p_distros_global <- ggviolin(
     og_assessment, y = "Median_score", x = "Mode", 
     orientation = "horiz", trim = TRUE,
     add = c("boxplot", "mean"), 
@@ -454,85 +458,108 @@ p_distros <- ggviolin(
          title = "Distribution of mean homogeneity scores for orthogroups") +
     theme(plot.subtitle = ggtext::element_markdown())
 
-p_distros
+p_distros_global
 ```
 
 ```{r save_global_h, echo = FALSE}
 save(
-    p_distros, compress = "xz",
-    file = here("products", "plots", "h_distros_global.rda")
+    p_distros_global, compress = "xz",
+    file = here("products", "plots", "p_distros_global.rda")
 )
 ```
 
 ## The effect of species choice
 
-Here, we will compare how scores vary for each species to check if the species
-choice can influence the distribution of orthogroup homogeneity scores.
+Here, we will compare the distributions of orthogroups scores using each 
+species individually to see if the species choice has an impact 
+on the conclusions.
 
-```{r effect_of_species_choice, eval = TRUE}
-# Convert data frame from wide to long to include species information
-og_byspecies <- og_assessment %>% 
-    filter(Mode == "default_1_5") %>%
-    dplyr::select(c(1:9)) %>%
-    pivot_longer(
-        cols = !Orthogroups,
-        names_to = "species",
-        values_to = "homogeneity"
-    ) %>%
+```{r species-choice, fig.width=12, fig.height=6, eval = TRUE, fig.cap = "Distribution of orthogroup scores for each OrthoFinder run calculated for each species separately."}
+og_species_long <- Reduce(rbind, lapply(2:8, function(x) {
+    
+    var <- names(og_assessment)[x]
+    species_name <- gsub("_.*", "", var)
+    
+    long_df <- og_assessment[, c("Orthogroups", var, "Mode")]
+    names(long_df) <- c("OGs", "Score", "Mode")
+    long_df$Score <- long_df$Score / max(long_df$Score, na.rm = TRUE)
+    long_df$Species <- species_name
+    
+    return(long_df)
+}))
+
+og_species_long <- og_species_long[!is.na(og_species_long$Score), ]
+og_species_long <- og_species_long |>
     mutate(
-        species = str_replace_all(species, "_.*", "")
+        Species = str_replace_all(
+            Species, 
+            c(
+                "Aarabicum" = "A. arabicum",
+                "Alyrata" = "A. lyrata",
+                "Athaliana" = "A. thaliana",
+                "Bcarinata" = "B. carinata",
+                "Chirsuta" = "C. hirsuta",
+                "Crubella" = "C. rubella",
+                "Sparvula" = "S. parvula"
+            )
+        )
     )
 
-# Compare each species to the mean
-comp_species <- compare(og_byspecies, "homogeneity ~ species", "Mean")
-comp_species
-```
 
-The Wilcoxon tests show that homogeneity scores for *B. carinata* are greater
-than the mean score, while the mean score is greater than all other species
-scores. However, the effect sizes are small. Thus, we conclude that the species 
-choice should not be a concern when assessing homogeneity scores.
-
-Let's visualize the distributions and highlighting significant differences
-with effect sizes > 0.1.
-
-```{r viz_species_H, eval = TRUE, fig.width = 8, fig.height = 6}
-# Plot
-comp_species <- list(c("Mean", "Aarabicum"))
-
-p_species <- og_byspecies %>%
-    mutate(homogeneity = homogeneity / max(homogeneity, na.rm = TRUE)) %>%
-    ggviolin(
-        ., y = "homogeneity", x = "species", 
-        orientation = "horiz", trim = TRUE,
-        add = c("boxplot", "mean"), 
-        fill = "species", add.params = list(fill = "white"), palette = "nejm"
-    ) +
-    stat_compare_means(
-        comparisons = comp_species, label = "p.signif",
-        method = "wilcox.test"
+p_distros_by_species <- ggviolin(
+    og_species_long, 
+    y = "Score", x = "Mode", 
+    orientation = "horiz", trim = TRUE,
+    add = c("boxplot", "mean"), facet.by = "Species", nrow = 1,
+    fill = "Mode", add.params = list(fill = "white")
+) +
+    scale_fill_manual(
+        values = c(
+            "ultra_3" = "#08519C", "ultra_2" = "#3182BD",
+            "ultra_1_5" = "#6BAED6", "ultra_1" = "#BDD7E7",
+            "default_3" = "#006D2C", "default_2" = "#31A354",
+            "default_1_5" = "#74C476", "default_1" = "#BAE4B3"
+        )
     ) +
     theme(legend.position = "none") +
-    labs(y = "Homogeneity scores", x = "",
-         title = "Distribution of mean homogeneity scores per species") +
-    theme(plot.subtitle = ggtext::element_markdown())
+    labs(
+        y = "Scaled homogeneity scores", x = "OrthoFinder modes",
+        title = "Distribution of OG scores for each species"
+    ) +
+    scale_x_discrete(
+        labels = c(
+            "default_1" = "Default, 1",
+            "default_1_5" = "Default, 1.5",
+            "default_2" = "Default, 2",
+            "default_3" = "Default, 3",
+            "ultra_1" = "Ultra, 1",
+            "ultra_1_5" = "Ultra, 1.5",
+            "ultra_2" = "Ultra, 2",
+            "ultra_3" = "Ultra, 3"
+        )
+    ) +
+    theme(axis.text.x = element_text(angle = 60, vjust = 0.5))
 
-p_species
+p_distros_by_species
 ```
 
-```{r save_species_H, echo = FALSE}
+```{r echo=FALSE}
 save(
-    p_species, compress = "xz",
-    file = here("products", "plots", "h_distros_species.rda")
+    p_distros_by_species, compress = "xz",
+    file = here("products", "plots", "p_distros_by_species.rda")
 )
 ```
+
+We conclude that the species choice does not affect the comparisons of
+orthogroup scores among OrthoFinder runs.
+
 
 ## The effect of mcl inflation parameters
 
 Here, we will explore the impact of changing mcl inflation parameters in
 the homogeneity of orthogroups.
 
-```{r og_mcl, eval = TRUE}
+```{r og-mcl, eval = TRUE}
 # Process data to include information on DIAMOND mode and mcl
 og_modes <- og_assessment %>%
     mutate(diamond = str_replace_all(Mode, "_.*", "")) %>%
@@ -544,12 +571,25 @@ og_modes <- og_assessment %>%
 comp_mcl_default <- og_modes %>% 
     filter(diamond == "default") %>%
     compare(., "Median_score ~ mcl")
-comp_mcl_default
+
+comp_mcl_default |>
+    filter_comparison() |>
+    knitr::kable(
+        caption = "Mann-Whitney U test for differences in orthogroup scores between runs with different mcl parameters and standard DIAMOND mode. Effect sizes represent Wilcoxon effect sizes.",
+        digits = 10
+    )
+
 
 comp_mcl_ultra <- og_modes %>% 
     filter(diamond == "ultra") %>%
     compare(., "Median_score ~ mcl")
-comp_mcl_ultra
+
+comp_mcl_ultra |>
+    filter_comparison() |>
+    knitr::kable(
+        caption = "Mann-Whitney U test for differences in orthogroup scores between runs with different mcl parameters and ultra-sensitive DIAMOND mode. Effect sizes represent Wilcoxon effect sizes.",
+        digits = 10
+    )
 ```
 
 In line with what we demonstrated in the global distributions, the Wilcoxon 
@@ -562,14 +602,14 @@ low P-values could be due to large sample sizes.
 
 Now, let's visualize the distributions.
 
-```{r viz_og_mcl, eval = TRUE, fig.width = 8, fig.height = 5, dpi = 200}
+```{r viz-og-mcl, eval = TRUE, fig.width = 8, fig.height = 5, dpi = 200, fig.cap="Effect of MCL inflation values on orthogroup scores."}
 # List of comparisons to be made
 mcl_comp <- list(
     c("1", "1.5"), c("1", "2"), c("1", "3"), c("1.5", "3")
 )
 
 # Plot
-p_mcl <- og_assessment %>%
+p_distros_mcl <- og_assessment %>%
     mutate(diamond = str_replace_all(Mode, "_.*", "")) %>%
     mutate(mcl = str_replace_all(Mode, c("default_" = "", "ultra_" = ""))) %>%
     mutate(mcl = str_replace_all(mcl, "_", ".")) %>%
@@ -594,13 +634,13 @@ p_mcl <- og_assessment %>%
         subtitle = "Panels represent DIAMOND sensitivity modes"
     )
 
-p_mcl
+p_distros_mcl
 ```
 
 ```{r save_H_mcl, echo = FALSE}
 save(
-    p_mcl, compress = "xz",
-    file = here("products", "plots", "h_distros_mcl.rda")
+    p_distros_mcl, compress = "xz",
+    file = here("products", "plots", "p_distros_mcl.rda")
 )
 ```
 
@@ -609,23 +649,38 @@ save(
 Here, we will investigate whether changing the DIAMOND mode
 (default vs ultrasensitive) in OrthoFinder affects orthogroup homogeneity.
 
-```{r compare_diamond_mode}
+```{r compare-diamond-mode, eval = TRUE}
 # Compare median scores
-og_modes %>% 
+mcl1 <- og_modes %>% 
     filter(mcl == 1) %>%
-    compare(., "Median_score ~ diamond")
+    compare(., "Median_score ~ diamond") |>
+    filter_comparison()
 
-og_modes %>% 
+mcl1_5 <- og_modes %>% 
     filter(mcl == 1.5) %>%
-    compare(., "Median_score ~ diamond")
+    compare(., "Median_score ~ diamond") |>
+    filter_comparison()
 
-og_modes %>% 
+mcl2 <- og_modes %>% 
     filter(mcl == 2) %>%
-    compare(., "Median_score ~ diamond")
+    compare(., "Median_score ~ diamond") |>
+    filter_comparison()
 
-og_modes %>% 
+mcl3 <- og_modes %>% 
     filter(mcl == 3) %>%
-    compare(., "Median_score ~ diamond")
+    compare(., "Median_score ~ diamond") |>
+    filter_comparison()
+
+bind_rows(
+    mcl1 |> mutate(mcl = 1),
+    mcl1_5 |> mutate(mcl = 1.5), 
+    mcl2 |> mutate(mcl = 2), 
+    mcl3 |> mutate(mcl = 3)
+) |>
+    knitr::kable(
+        caption = "Mann-Whitney U test for differences in orthogroup scores between runs with different DIAMOND modes for each mcl value. Effect sizes represent Wilcoxon effect sizes.",
+        digits = 10
+    )
 ```
 
 Again, we can see that there are significant P-values, but very small effect 
@@ -635,9 +690,9 @@ without any loss of biological signal for orthogroup inference.
 
 Let's visualize the distributions.
 
-```{r og_diamond, eval = TRUE, fig.width = 8, fig.height = 6, dpi = 200}
+```{r og-diamond, eval = TRUE, fig.width = 8, fig.height = 6, dpi = 200, fig.cap="Effect of DIAMOND mode on orthogroup scores."}
 # Plot
-p_diamond <- og_modes %>%
+p_distros_diamond <- og_modes %>%
     ggviolin(., x = "diamond", y = "Median_score", trim = TRUE,
              add = c("boxplot", "mean"), facet.by = "mcl", ncol = 4,
              fill = "Mode", add.params = list(fill = "white")) +
@@ -653,14 +708,14 @@ p_diamond <- og_modes %>%
          subtitle = "Panels represent MCL inflation parameters") +
     theme(plot.subtitle = ggtext::element_markdown())
 
-p_diamond
+p_distros_diamond
 ```
 
 
 ```{r save_diamond_H, echo = FALSE}
 save(
-    p_diamond, compress = "xz",
-    file = here("products", "plots", "h_distros_diamond.rda")
+    p_distros_diamond, compress = "xz",
+    file = here("products", "plots", "p_distros_diamond.rda")
 )
 ```
 
@@ -677,15 +732,13 @@ To explore what these groups of families contain, we will perform a functional
 enrichment analysis each group. First of anything, let's plot
 the distribution for the default OrthoFinder mode and highlight the groups.
 
-```{r plot_distros_with_groups, eval = TRUE}
+```{r plot-distros-with-groups, eval = TRUE, fig.cap="Distribution of mean homogeneity scores for orthogroups"}
 # Plot distro with groups
 p_distros_groups <- og_assessment %>%
     filter(Mode == "default_1_5") %>%
-    ggdensity(
-    ., x = "Median_score",
-    fill = "grey80"
-) +
-    theme(legend.position = "none") +
+    ggplot(aes(x = Median_score)) +
+    geom_density(fill = "grey80", color = "black") +
+    ggpubr::theme_pubr() +
     labs(
         y = "Density", x = "Orthogroup scores",
         title = "Distribution of mean homogeneity scores for orthogroups",
@@ -936,7 +989,7 @@ load(here("products", "result_files", "g2_summary.rda"))
 load(here("products", "result_files", "g3_summary.rda"))
 ```
 
-```{r plot_treeplot, eval=TRUE, dpi=200, fig.height=9, fig.width=20}
+```{r plot-treeplot, eval=TRUE, dpi=200, fig.height=9, fig.width=20, fig.cap="Tree plot of functional terms associated with each orthogroup cluster."}
 # Tree plot
 p_tree_g1 <- treeplot(g1_summary, nWords = 0) +
     ggsci::scale_fill_jama() +
@@ -998,7 +1051,7 @@ save(
 )
 ```
 
-```{r plot_dotplot, fig.height=10, fig.width=18, eval = TRUE,dpi=200}
+```{r plot-dotplot, fig.height=10, fig.width=18, eval = TRUE,dpi=200, fig.cap="Dotplot of functional terms associated with each orthogroup cluster."}
 # Dot plot
 p_dot_g1 <- dotplot(g1_summary, showCategory = 20) + ggtitle("Group 1")
 p_dot_g2 <- dotplot(g2_summary, showCategory = 20) + ggtitle("Group 2")
@@ -1126,8 +1179,8 @@ load(here("products", "result_files", "og_length_and_scores.rda"))
 
 Now, let's plot the data.
 
-```{r plot_og_length_h, eval = TRUE, fig.width = 8, fig.height = 5}
-p_association <- og_length_and_scores %>%
+```{r plot-og-length-h, eval = TRUE, fig.width = 8, fig.height = 5, fig.cap="Relationship between sequence length and orthogroup scores."}
+p_association_length_homogeneity <- og_length_and_scores %>%
     mutate(
         logH = log10(Median_H),
         logLength = log10(median_length)
@@ -1148,12 +1201,12 @@ p_association <- og_length_and_scores %>%
         y = expression(Log[10]~"median homogeneity score")
     )
 
-p_association
+p_association_length_homogeneity
 ```
 
 ```{r echo = FALSE}
 save(
-    p_association,
+    p_association_length_homogeneity,
     file = here("products", "plots", "p_association_length_homogeneity.rda"),
     compress = "xz"
 )

@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Text S4: Assessing synteny detection in Fabaceae"
-shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
     affiliation: 
@@ -209,13 +209,16 @@ load("~/Documents/intermediate_data/cogeqc_benchmark/syn_fabaceae.rda")
 Now, let's use the network-based synteny assessment to see which combination
 of parameters is the best.
 
-```{r assess_synteny_fabaceae, eval = TRUE}
+```{r assess-synteny-fabaceae, eval = TRUE}
 # Assess networks
 fabaceae_scores <- assess_synnet_list(syn_fabaceae)
 
 # Look at scores, ranked from highest to lowest
 fabaceae_scores %>%
-    arrange(-Score)
+    arrange(-Score) |>
+    knitr::kable(
+        caption = "Scores for each synteny network."
+    )
 ```
 
 As we can see, the combination of parameters `a = 3; m = 25` is
@@ -224,7 +227,7 @@ the best for this data set.
 Finally, let's visualize scores. To make visualization better, we will scale
 scores by the maximum value, so that values range from 0 to 1.
 
-```{r viz_fabaceae, eval = TRUE, fig.height=6, fig.width=8}
+```{r viz-fabaceae, eval = TRUE, fig.height=6, fig.width=8, fig.cap="Scaled scores for each synteny network."}
 # Plot scores
 synteny_scores_fabaceae <- fabaceae_scores %>%
     arrange(Score) %>%
@@ -233,7 +236,6 @@ synteny_scores_fabaceae <- fabaceae_scores %>%
     mutate(Parameters = factor(Parameters, levels = unique(Parameters))) %>%
     ggplot(., aes(x = Parameters, y = Score)) +
     geom_col(fill = "grey60", color = "black") +
-    coord_flip() +
     theme_bw() +
     labs(
         title = "Assessment of the Fabaceae synteny network",
@@ -288,7 +290,7 @@ names(species_networks) <- c(
 For each species, we will assess the networks inferred with different 
 combinations of parameters.
 
-```{r assess_species_networks, eval = TRUE, fig.width = 8, fig.height = 6}
+```{r assess-species-networks, eval = TRUE, fig.width = 8, fig.height = 6, fig.cap="Scores for species-specific synteny networks."}
 # Assess species-specific networks
 scores_species_nets <- lapply(seq_along(species_networks), function(x) {
     

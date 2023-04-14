@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Text S1: Assessing the completeness of Chlorophyta genomes"
-shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
     affiliation: 
@@ -44,7 +44,7 @@ options(timeout = 6000) # to load files from the web
 
 Here, we will use `r BiocStyle::Biocpkg("cogeqc")` to assess the completeness 
 of Chlorophyta genomes available on Pico-PLAZA 3.0 [@van2018plaza] using 
-Best Universal Single-Copy Orthologs (BUSCO).
+Best Universal Single-Copy Orthologs (BUSCOs).
 
 # Managing external dependencies with virtual environments
 
@@ -155,7 +155,7 @@ head(busco_summary)
 
 Finally, let's visualize summary BUSCO stats:
 
-```{r viz_busco, eval = TRUE, fig.width=13, fig.height=8, dpi=200}
+```{r viz-busco, eval = TRUE, fig.width=13, fig.height=8, dpi=200, fig.cap="BUSCO scores for Chlorophyta genomes on Pico-PLAZA 3.0."}
 # Manually create tree based on Pico-PLAZA's tree
 c_branches <- function(b1, b2) {
     x <- paste0("(", b1, ",", b2, ")")

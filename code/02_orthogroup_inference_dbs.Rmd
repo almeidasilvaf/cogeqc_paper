@@ -1,6 +1,6 @@
 ---
 title: "Supplementary Text S2: Assessing orthogroup inference in public databases"
-shorttitle: "cogeqc: an R/Bioconductor package for quality checks in comparative genomics"
+shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
     affiliation: 
@@ -47,12 +47,11 @@ in `r BiocStyle::Biocpkg("cogeqc")` to assess gene families from
 different sources, namely:
 
 - PLAZA Dicots 5.0 [@van2022plaza]
-- OrthoDB [@zdobnov2021orthodb]
-- eggNOG [@huerta2019eggnog]
+- OrthoDB [@kuznetsov2023orthodb]
+- eggNOG [@hernandez2023eggnog]
 - HOGENOM [@penel2009databases]
-- @qiao2019gene
 
-# Orthogroup assessment
+# Calculating orthogroup scores
 
 To make comparison possible, we will *Arabidopsis thaliana* domain annotation
 as a proxy, as this species is present in all of the aforementioned databases.
@@ -107,47 +106,6 @@ H_plaza <- H_summary(fam_df_plaza)
 head(H_plaza$H)
 ```
 
-
-## Qiao *et al.*, 2019. Genome Biology
-
-Orthogroups from @qiao2019gene are available in [this FigShare repository](https://figshare.com/articles/dataset/Gene_duplication_and_evolution_in_recurring_polyploidization-diploidization_cycles_in_plants/7264667/1). 
-The orthogroups information are in the *Orthogroups.csv.zip* file.
-
-```{r qiao_et_al}
-# Download file and unzip it
-download.file(
-    url = "https://figshare.com/ndownloader/files/13382270",
-    destfile = file.path(tempdir(), "Orthogroups.zip")
-)
-unzip(
-    zipfile = file.path(tempdir(), "Orthogroups.zip"),
-    exdir = tempdir()
-)
-
-# Get orthogroups
-## This file is an old OrthoFinder output without "Orthogroup" in the first row
-## Let's add it manually, so it can be parsed with read_orthogroups
-og_file <- file.path(tempdir(), "Orthogroups.csv")
-l <- readLines(og_file)
-l[1] <- paste0("Orthogroup", l[1])
-writeLines(l, con = og_file)
-
-## Read and parse file
-fam_qiao <- cogeqc::read_orthogroups(og_file) %>%
-    mutate(Species = str_replace_all(Species, "\\.pep.*", "")) %>%
-    filter(Species == "Ath") %>%
-    mutate(Gene = str_replace_all(Gene, "\\.[0-9]$", "")) %>%
-    as.data.frame()
-
-# Combining everything and calculating homogeneity scores
-fam_df_qiao <- merge(fam_qiao, ath_interpro)
-H_qiao <- H_summary(fam_df_qiao)
-```
-
-```{r cleaning, eval = TRUE, echo = FALSE}
-invisible(gc())
-```
-
 ## OrthoDB, eggNOG, and HOGENOM
 
 Orthogroup assignments from these databases will be obtained from 
@@ -199,7 +157,6 @@ data frame.
 ```{r comparison}
 H_combined <- bind_rows(
     H_plaza$H %>% mutate(Source = "PLAZA"),
-    H_qiao$H %>% mutate(Source = "Qiao et al."),
     H_orthodb$H %>% mutate(Source = "OrthoDB"),
     H_eggnog$H %>% mutate(Source = "eggNOG"),
     H_hogenom$H %>% mutate(Source = "HOGENOM")
@@ -221,7 +178,7 @@ to see if there are any differences. For that, we will calculate P-values
 from a Wilcoxon test with Wicoxon effect sizes (r). The Wilcoxon effect size
 is calculated as the Z statistic divided by the square root of the sample size.
 
-```{r compare_summary_stats, eval = TRUE}
+```{r compare-summary-stats, eval = TRUE}
 # Scale scores to maximum, so that they range from 0 to 1
 H_combined$Score <- H_combined$Score / max(H_combined$Score)
 head(H_combined)
@@ -234,20 +191,21 @@ H_combined %>%
 # Compare homogeneity scores - all vs all
 db_wilcox <- compare(H_combined, "Score ~ Source")
 
-db_wilcox[db_wilcox$padj_interpretation != "ns", ]
+db_wilcox |>
+    filter_comparison() |>
+    knitr::kable(
+        caption = "Mann-Whitney U test for differences in orthogroup scores with Wilcoxon effect sizes.",
+        digits = 10
+    )
 ```
 
 We can see that there are diffences in mean. In summary:
 
 1. eggNOG orthogroups have lower scores than every other source
 
-2. HOGENOM orthogroups have higher scores than OrthoDB, but lower than 
-Qiao *et al.* and PLAZA.
+2. HOGENOM orthogroups have higher scores than OrthoDB, but lower than PLAZA.
 
-3. Orthogroups scores from Qiao *et al* are higher than all other sources.
-
-4. Among the databases (excluding Qiao *et al*), PLAZA orthogroup scores are
-higher than every other database.
+3. PLAZA orthogroup scores are higher than every other database.
 
 
 However, the effect sizes are very small, suggesting that significant 
@@ -258,27 +216,23 @@ Now, let's visualize the distributions with significant differences
 highlighted. Here, we will only display comparison bars for comparisons with
 *P* < 0.05 and effect sizes > 0.1.
 
-```{r visualize_distros, eval = TRUE, warning = FALSE, message = FALSE, dpi = 200}
+```{r visualize-distros, eval = TRUE, warning = FALSE, message = FALSE, dpi = 200, fig.cap="Distribution of mean orthogroup scores."}
 # Comparisons to be made
 comps <- list(
-    c("Qiao et al.", "PLAZA"),
-    c("Qiao et al.", "HOGENOM"),
-    c("Qiao et al.", "OrthoDB"),
-    c("Qiao et al.", "eggNOG"),
     c("HOGENOM", "eggNOG")
 )
 
 # Change order of levels according to comparison results
 H_combined$Source <- factor(
     H_combined$Source, levels = rev(c(
-        "Qiao et al.", "PLAZA", "HOGENOM", "OrthoDB", "eggNOG"
+        "PLAZA", "HOGENOM", "OrthoDB", "eggNOG"
     ))
 )
 
 # Visualize distributions with significant differences highlighted
 distros <- ggviolin(
     H_combined, y = "Score", x = "Source", 
-    orientation = "horiz", trim = TRUE, add = "boxplot", 
+    orientation = "horiz", trim = TRUE, add = c("boxplot", "mean"), 
     fill = "Source", add.params = list(fill = "white"), palette = "jama"
 ) +
     ggpubr::stat_compare_means(
