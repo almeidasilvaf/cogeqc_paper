@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.433">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Code and data for “Assessing the quality of comparative genomics data and results with the cogeqc R/Bioconductor package” - 1&nbsp; Assessing the completeness of Chlorophyta genomes</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/02_orthogroup_inference_dbs.html" rel="next">
+<link href="../index.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 20,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01_busco_assessment.html"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Assessing the completeness of Chlorophyta genomes</span></a></li></ol></nav>
+      <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+      </a>
+      <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Code and data for “Assessing the quality of comparative genomics data and results with the cogeqc R/Bioconductor package”</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Preface</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01_busco_assessment.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Assessing the completeness of Chlorophyta genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/02_orthogroup_inference_dbs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/03_orthogroup_inference_brassicaceae.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/04_orthogroup_assessment_orthobench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Orthogroup assessment in Orthobench</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/05_synteny_assessment_fabaceae.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Assessing synteny detection in Fabaceae</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/appendices.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Appendices</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#managing-external-dependencies-with-virtual-environments" id="toc-managing-external-dependencies-with-virtual-environments" class="nav-link active" data-scroll-target="#managing-external-dependencies-with-virtual-environments"><span class="header-section-number">1.1</span> Managing external dependencies with virtual environments</a></li>
+  <li><a href="#data-acquisition" id="toc-data-acquisition" class="nav-link" data-scroll-target="#data-acquisition"><span class="header-section-number">1.2</span> Data acquisition</a></li>
+  <li><a href="#running-busco" id="toc-running-busco" class="nav-link" data-scroll-target="#running-busco"><span class="header-section-number">1.3</span> Running BUSCO</a></li>
+  <li><a href="#visualizing-summary-statistics" id="toc-visualizing-summary-statistics" class="nav-link" data-scroll-target="#visualizing-summary-statistics"><span class="header-section-number">1.4</span> Visualizing summary statistics</a></li>
+  <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
+  <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Assessing the completeness of Chlorophyta genomes</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p>Here, we will use <em><a href="https://bioconductor.org/packages/3.17/cogeqc">cogeqc</a></em> to assess the completeness of Chlorophyta genomes available on Pico-PLAZA 3.0 <span class="citation" data-cites="van2018plaza">(<a href="#ref-van2018plaza" role="doc-biblioref">Van Bel et al. 2018</a>)</span> using Best Universal Single-Copy Orthologs (BUSCOs).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(here)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(cogeqc)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(Herper)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>) <span class="co"># for reproducibility</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">options</span>(<span class="at">timeout =</span> <span class="dv">6000</span>) <span class="co"># to load files from the web</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="managing-external-dependencies-with-virtual-environments" class="level2" data-number="1.1">
+<h2 data-number="1.1" class="anchored" data-anchor-id="managing-external-dependencies-with-virtual-environments"><span class="header-section-number">1.1</span> Managing external dependencies with virtual environments</h2>
+<p>Here, for convenience, we will install BUSCO in a Conda environment for use with <em><a href="https://bioconductor.org/packages/3.17/cogeqc">cogeqc</a></em>. For that, we will use the Bioconductor package <em><a href="https://bioconductor.org/packages/3.17/Herper">Herper</a></em>.</p>
+<p>Below, you can find the code to install miniconda in a directory of your choice (here, “~/Documents”) and create a virtual environment containing a BUSCO installation.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Path to where BUSCO will be installed and env name</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>my_miniconda <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="st">"~/Documents"</span>, <span class="st">"miniconda"</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>env <span class="ot">&lt;-</span> <span class="st">"cogeqc_env"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create env named `cogeqc_env` with BUSCO in it</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">install_CondaTools</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">tools =</span> <span class="st">"busco==5.3.0"</span>, </span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">env =</span> env, </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">channels =</span> <span class="fu">c</span>(<span class="st">"conda-forge"</span>, <span class="st">"bioconda"</span>),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">pathToMiniConda =</span> my_miniconda</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="data-acquisition" class="level2" data-number="1.2">
+<h2 data-number="1.2" class="anchored" data-anchor-id="data-acquisition"><span class="header-section-number">1.2</span> Data acquisition</h2>
+<p>Now, we will load all genomes directly from PLAZA as <code>DNAStringSet</code> objects and export them to a single directory of FASTA files, so we can run BUSCO in batch mode.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Links to Chlorophyta genomes from Pico-PLAZA 3.0</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>base_url <span class="ot">&lt;-</span> <span class="st">"ftp://ftp.psb.ugent.be/pub/plaza/plaza_pico_03/Genomes/"</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>links <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>    base_url, </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c</span>(<span class="st">"mpu.fasta.gz"</span>, <span class="st">"mrcc299.fasta.gz"</span>, <span class="st">"olu.fasta.gz"</span>, <span class="st">"ome.fasta.gz"</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>      <span class="st">"orcc809.fasta.gz"</span>, <span class="st">"ota.fasta.gz"</span>, <span class="st">"bprrcc1105.fasta.gz"</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>      <span class="st">"cre.fasta.gz"</span>, <span class="st">"vca.fasta.gz"</span>, <span class="st">"cvu.fasta.gz"</span>, <span class="st">"acg.fasta.gz"</span>,</span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>      <span class="st">"pse3.fasta.gz"</span>, <span class="st">"prcc4223.fasta.gz"</span>, <span class="st">"cnc64a.fasta.gz"</span>, </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>      <span class="st">"hsp.fasta.gz"</span>, <span class="st">"apr.fasta.gz"</span>)</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Load all genomes</span></span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>genomes <span class="ot">&lt;-</span> <span class="fu">lapply</span>(links, Biostrings<span class="sc">::</span>readDNAStringSet)</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(genomes) <span class="ot">&lt;-</span> <span class="fu">basename</span>(links)</span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Write all genomes to a subdirectory of tempdir</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>genomes_path <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"genomes"</span>)</span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">dir.exists</span>(genomes_path)) { fs<span class="sc">::</span><span class="fu">dir_create</span>(genomes_path) }</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>write <span class="ot">&lt;-</span> <span class="fu">lapply</span>(<span class="fu">seq_along</span>(genomes), <span class="cf">function</span>(x) {</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>    Biostrings<span class="sc">::</span><span class="fu">writeXStringSet</span>(</span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> genomes[[x]], </span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">filepath =</span> <span class="fu">file.path</span>(genomes_path, <span class="fu">names</span>(genomes)[x])</span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">return</span>(<span class="cn">NULL</span>)</span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="running-busco" class="level2" data-number="1.3">
+<h2 data-number="1.3" class="anchored" data-anchor-id="running-busco"><span class="header-section-number">1.3</span> Running BUSCO</h2>
+<p>Now that all genomes are stored as FASTA files in /tmp/Rtmp9EWuNG/genomes, we can assess their completeness with BUSCO.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># See all possible lineage datasets</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="fu">with_CondaEnv</span>(</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    env, <span class="fu">list_busco_datasets</span>(), my_miniconda</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Run BUSCO using chlorophyta_odb10 as the lineage data set</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>busco <span class="ot">&lt;-</span> <span class="fu">with_CondaEnv</span>(</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    env,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>    <span class="fu">run_busco</span>(</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">sequence =</span> genomes_path, </span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">outlabel =</span> <span class="st">"chlorophyta_busco"</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">mode =</span> <span class="st">"genome"</span>,</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">lineage =</span> <span class="st">"chlorophyta_odb10"</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">outpath =</span> <span class="fu">tempdir</span>(),</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>        <span class="at">download_path =</span> <span class="fu">tempdir</span>()</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    my_miniconda</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Read and parse the output</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>outdir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"chlorophyta_busco"</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>busco_summary <span class="ot">&lt;-</span> <span class="fu">read_busco</span>(outdir)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>    busco_summary,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_summary.rda"</span>),</span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a>    <span class="at">compress =</span> <span class="st">"xz"</span></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The parsed BUSCO output (as returned by <code>read_busco()</code>) looks like this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"busco_summary.rda"</span>))</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(busco_summary)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>        Class Frequency           Lineage             File
+1 Complete_SC      94.1 chlorophyta_odb10    pse3.fasta.gz
+2 Complete_SC      95.1 chlorophyta_odb10     cre.fasta.gz
+3 Complete_SC      96.8 chlorophyta_odb10     olu.fasta.gz
+4 Complete_SC      98.7 chlorophyta_odb10 mrcc299.fasta.gz
+5 Complete_SC      91.8 chlorophyta_odb10     apr.fasta.gz
+6 Complete_SC      86.4 chlorophyta_odb10     acg.fasta.gz</code></pre>
+</div>
+</div>
+</section>
+<section id="visualizing-summary-statistics" class="level2" data-number="1.4">
+<h2 data-number="1.4" class="anchored" data-anchor-id="visualizing-summary-statistics"><span class="header-section-number">1.4</span> Visualizing summary statistics</h2>
+<p>Finally, let’s visualize summary BUSCO stats:</p>
+<div class="cell" data-fig.dpi="200">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Manually create tree based on Pico-PLAZA's tree</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>c_branches <span class="ot">&lt;-</span> <span class="cf">function</span>(b1, b2) {</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    x <span class="ot">&lt;-</span> <span class="fu">paste0</span>(<span class="st">"("</span>, b1, <span class="st">","</span>, b2, <span class="st">")"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>ostreococcus_root <span class="ot">&lt;-</span> <span class="st">"((((Ostreococcus_lucimarinus, Ostreococcus_sp_RCC809), Ostreococcus_tauri), Ostreococcus_mediterraneus), Bathycoccus_prasinos)"</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>micromonas <span class="ot">&lt;-</span> <span class="st">"(Micromonas_pusilla_strain_CCMP1545, Micromonas_sp_RCC299)"</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>chlamydomonadales <span class="ot">&lt;-</span> <span class="st">"(Volvox_carteri, Chlamydomonas_reinhardtii)"</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>picochlorum <span class="ot">&lt;-</span> <span class="st">"(Picochlorum_sp_SENEW3, Picochlorum_RCC4223)"</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>chlorellales <span class="ot">&lt;-</span> <span class="st">"((Helicosporidium_sp, Auxenochlorella_protothecoides), Chlorella_sp_NC64A)"</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>trebouxiophyceae <span class="ot">&lt;-</span> <span class="fu">c_branches</span>(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"(Coccomyxa_subellipsoidea_C-169, Asterochloris_sp_Cgr/DA1pho_v2)"</span>, </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c_branches</span>(picochlorum, chlorellales)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>chlo_tree <span class="ot">&lt;-</span> <span class="fu">c_branches</span>(</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c_branches</span>(</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        ostreococcus_root, micromonas</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">c_branches</span>(</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>        chlamydomonadales, trebouxiophyceae</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>chlo_tree <span class="ot">&lt;-</span> <span class="fu">paste0</span>(chlo_tree, <span class="st">";"</span>)</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Read tree as a phylo object and clean species names</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>chlo_tree <span class="ot">&lt;-</span> treeio<span class="sc">::</span><span class="fu">read.tree</span>(<span class="at">text =</span> chlo_tree)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>chlo_tree<span class="sc">$</span>tip.label <span class="ot">&lt;-</span> <span class="fu">gsub</span>(<span class="st">"_"</span>, <span class="st">" "</span>, chlo_tree<span class="sc">$</span>tip.label)</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot species tree and get species order from tree topology</span></span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>p_tree <span class="ot">&lt;-</span> <span class="fu">plot_species_tree</span>(chlo_tree, <span class="at">xlim =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">12</span>))</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>taxa_order <span class="ot">&lt;-</span> <span class="fu">rev</span>(ggtree<span class="sc">::</span><span class="fu">get_taxa_name</span>(p_tree)) </span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot BUSCO summary stats</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>p_busco <span class="ot">&lt;-</span> busco_summary <span class="sc">%&gt;%</span></span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">File =</span> <span class="fu">str_replace_all</span>(File, <span class="st">"</span><span class="sc">\\</span><span class="st">.fasta.*"</span>, <span class="st">""</span>)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">File =</span> <span class="fu">str_replace_all</span>(</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        File,</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        <span class="fu">c</span>(</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>            <span class="st">"pse3"</span> <span class="ot">=</span> <span class="st">"Picochlorum sp SENEW3"</span>,</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>            <span class="st">"cre"</span> <span class="ot">=</span> <span class="st">"Chlamydomonas reinhardtii"</span>,</span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>            <span class="st">"olu"</span> <span class="ot">=</span> <span class="st">"Ostreococcus lucimarinus"</span>,</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mrcc299"</span> <span class="ot">=</span> <span class="st">"Micromonas sp RCC299"</span>,</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>            <span class="st">"apr"</span> <span class="ot">=</span> <span class="st">"Auxenochlorella protothecoides"</span>,</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>            <span class="st">"acg"</span> <span class="ot">=</span> <span class="st">"Asterochloris sp Cgr/DA1pho v2"</span>,</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>            <span class="st">"cvu"</span> <span class="ot">=</span> <span class="st">"Coccomyxa subellipsoidea C-169"</span>,</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>            <span class="st">"bprrcc1105"</span> <span class="ot">=</span> <span class="st">"Bathycoccus prasinos"</span>,</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>            <span class="st">"orcc809"</span> <span class="ot">=</span> <span class="st">"Ostreococcus sp RCC809"</span>,</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>            <span class="st">"prcc4223"</span> <span class="ot">=</span> <span class="st">"Picochlorum RCC4223"</span>,</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>            <span class="st">"ota"</span> <span class="ot">=</span> <span class="st">"Ostreococcus tauri"</span>,</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>            <span class="st">"hsp"</span> <span class="ot">=</span> <span class="st">"Helicosporidium sp"</span>,</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>            <span class="st">"mpu"</span> <span class="ot">=</span> <span class="st">"Micromonas pusilla strain CCMP1545"</span>,</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>            <span class="st">"vca"</span> <span class="ot">=</span> <span class="st">"Volvox carteri"</span>,</span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>            <span class="st">"ome"</span> <span class="ot">=</span> <span class="st">"Ostreococcus mediterraneus"</span>,</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>            <span class="st">"cnc64a"</span> <span class="ot">=</span> <span class="st">"Chlorella sp NC64A"</span></span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    )) <span class="sc">%&gt;%</span></span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(<span class="at">File =</span> <span class="fu">factor</span>(File, taxa_order)) <span class="sc">%&gt;%</span></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    <span class="fu">plot_busco</span>() <span class="sc">+</span></span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>()) <span class="sc">+</span></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(<span class="at">y =</span> <span class="st">""</span>)</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a><span class="co"># Combining phylogeny with BUSCO plot</span></span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>combined <span class="ot">&lt;-</span> patchwork<span class="sc">::</span><span class="fu">wrap_plots</span>(p_tree, p_busco)</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>combined</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="01_busco_assessment_files/figure-html/viz-busco-1.png" class="img-fluid figure-img" width="1248"></p>
+<figcaption class="figure-caption">BUSCO scores for Chlorophyta genomes on Pico-PLAZA 3.0.</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Except for <em>Helicosporidium sp.</em>, Chlorophyta genomes on Pico-PLAZA 3.0 have a high quality, as denoted by their high completeness.</p>
+</section>
+<section id="session-info" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
+<p>This document was created under the following conditions:</p>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>─ Session info ───────────────────────────────────────────────────────────────
+ setting  value
+ version  R version 4.3.0 (2023-04-21)
+ os       Ubuntu 20.04.5 LTS
+ system   x86_64, linux-gnu
+ ui       X11
+ language (EN)
+ collate  en_US.UTF-8
+ ctype    en_US.UTF-8
+ tz       Europe/Brussels
+ date     2023-08-01
+ pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
+
+─ Packages ───────────────────────────────────────────────────────────────────
+ package          * version   date (UTC) lib source
+ ape                5.7-1     2023-03-13 [1] CRAN (R 4.3.0)
+ aplot              0.1.10    2023-03-08 [1] CRAN (R 4.3.0)
+ beeswarm           0.4.0     2021-06-01 [1] CRAN (R 4.3.0)
+ BiocGenerics       0.46.0    2023-04-25 [1] Bioconductor
+ BiocManager        1.30.20   2023-02-24 [1] CRAN (R 4.3.0)
+ BiocStyle          2.28.0    2023-04-25 [1] Bioconductor
+ Biostrings         2.68.0    2023-04-25 [1] Bioconductor
+ bitops             1.0-7     2021-04-24 [1] CRAN (R 4.3.0)
+ cli                3.6.1     2023-03-23 [1] CRAN (R 4.3.0)
+ cogeqc           * 1.4.0     2023-04-25 [1] Bioconductor
+ colorspace         2.1-0     2023-01-23 [1] CRAN (R 4.3.0)
+ crayon             1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
+ digest             0.6.31    2022-12-11 [1] CRAN (R 4.3.0)
+ dplyr            * 1.1.2     2023-04-20 [1] CRAN (R 4.3.0)
+ evaluate           0.20      2023-01-17 [1] CRAN (R 4.3.0)
+ fansi              1.0.4     2023-01-22 [1] CRAN (R 4.3.0)
+ farver             2.1.1     2022-07-06 [1] CRAN (R 4.3.0)
+ fastmap            1.1.1     2023-02-24 [1] CRAN (R 4.3.0)
+ forcats          * 1.0.0     2023-01-29 [1] CRAN (R 4.3.0)
+ fs                 1.6.2     2023-04-25 [1] CRAN (R 4.3.0)
+ generics           0.1.3     2022-07-05 [1] CRAN (R 4.3.0)
+ GenomeInfoDb       1.36.0    2023-04-25 [1] Bioconductor
+ GenomeInfoDbData   1.2.10    2023-04-28 [1] Bioconductor
+ ggbeeswarm         0.7.2     2023-04-29 [1] CRAN (R 4.3.0)
+ ggfun              0.0.9     2022-11-21 [1] CRAN (R 4.3.0)
+ ggplot2          * 3.4.1     2023-02-10 [1] CRAN (R 4.3.0)
+ ggplotify          0.1.0     2021-09-02 [1] CRAN (R 4.3.0)
+ ggtree             3.8.0     2023-04-25 [1] Bioconductor
+ glue               1.6.2     2022-02-24 [1] CRAN (R 4.3.0)
+ gridGraphics       0.5-1     2020-12-13 [1] CRAN (R 4.3.0)
+ gtable             0.3.3     2023-03-21 [1] CRAN (R 4.3.0)
+ here             * 1.0.1     2020-12-13 [1] CRAN (R 4.3.0)
+ Herper           * 1.10.1    2023-07-12 [1] Bioconductor
+ hms                1.1.3     2023-03-21 [1] CRAN (R 4.3.0)
+ htmltools          0.5.5     2023-03-23 [1] CRAN (R 4.3.0)
+ htmlwidgets        1.6.2     2023-03-17 [1] CRAN (R 4.3.0)
+ igraph             1.4.2     2023-04-07 [1] CRAN (R 4.3.0)
+ IRanges            2.34.0    2023-04-25 [1] Bioconductor
+ jsonlite           1.8.4     2022-12-06 [1] CRAN (R 4.3.0)
+ knitr              1.42      2023-01-25 [1] CRAN (R 4.3.0)
+ labeling           0.4.2     2020-10-20 [1] CRAN (R 4.3.0)
+ lattice            0.20-45   2021-09-22 [4] CRAN (R 4.2.0)
+ lazyeval           0.2.2     2019-03-15 [1] CRAN (R 4.3.0)
+ lifecycle          1.0.3     2022-10-07 [1] CRAN (R 4.3.0)
+ lubridate        * 1.9.2     2023-02-10 [1] CRAN (R 4.3.0)
+ magrittr           2.0.3     2022-03-30 [1] CRAN (R 4.3.0)
+ Matrix             1.5-1     2022-09-13 [4] CRAN (R 4.2.1)
+ munsell            0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
+ nlme               3.1-162   2023-01-31 [4] CRAN (R 4.2.2)
+ patchwork          1.1.2     2022-08-19 [1] CRAN (R 4.3.0)
+ pillar             1.9.0     2023-03-22 [1] CRAN (R 4.3.0)
+ pkgconfig          2.0.3     2019-09-22 [1] CRAN (R 4.3.0)
+ plyr               1.8.8     2022-11-11 [1] CRAN (R 4.3.0)
+ png                0.1-8     2022-11-29 [1] CRAN (R 4.3.0)
+ purrr            * 1.0.1     2023-01-10 [1] CRAN (R 4.3.0)
+ R6                 2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
+ Rcpp               1.0.10    2023-01-22 [1] CRAN (R 4.3.0)
+ RCurl              1.98-1.12 2023-03-27 [1] CRAN (R 4.3.0)
+ readr            * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
+ reshape2           1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
+ reticulate       * 1.30      2023-06-09 [1] CRAN (R 4.3.0)
+ rjson              0.2.21    2022-01-09 [1] CRAN (R 4.3.0)
+ rlang              1.1.1     2023-04-28 [1] CRAN (R 4.3.0)
+ rmarkdown          2.21      2023-03-26 [1] CRAN (R 4.3.0)
+ rprojroot          2.0.3     2022-04-02 [1] CRAN (R 4.3.0)
+ rstudioapi         0.14      2022-08-22 [1] CRAN (R 4.3.0)
+ S4Vectors          0.38.0    2023-04-25 [1] Bioconductor
+ scales             1.2.1     2022-08-20 [1] CRAN (R 4.3.0)
+ sessioninfo        1.2.2     2021-12-06 [1] CRAN (R 4.3.0)
+ stringi            1.7.12    2023-01-11 [1] CRAN (R 4.3.0)
+ stringr          * 1.5.0     2022-12-02 [1] CRAN (R 4.3.0)
+ tibble           * 3.2.1     2023-03-20 [1] CRAN (R 4.3.0)
+ tidyr            * 1.3.0     2023-01-24 [1] CRAN (R 4.3.0)
+ tidyselect         1.2.0     2022-10-10 [1] CRAN (R 4.3.0)
+ tidytree           0.4.2     2022-12-18 [1] CRAN (R 4.3.0)
+ tidyverse        * 2.0.0     2023-02-22 [1] CRAN (R 4.3.0)
+ timechange         0.2.0     2023-01-11 [1] CRAN (R 4.3.0)
+ treeio             1.24.1    2023-05-31 [1] Bioconductor
+ tzdb               0.3.0     2022-03-28 [1] CRAN (R 4.3.0)
+ utf8               1.2.3     2023-01-31 [1] CRAN (R 4.3.0)
+ vctrs              0.6.2     2023-04-19 [1] CRAN (R 4.3.0)
+ vipor              0.4.5     2017-03-22 [1] CRAN (R 4.3.0)
+ withr              2.5.0     2022-03-03 [1] CRAN (R 4.3.0)
+ xfun               0.39      2023-04-20 [1] CRAN (R 4.3.0)
+ XVector            0.40.0    2023-04-25 [1] Bioconductor
+ yaml               2.3.7     2023-01-23 [1] CRAN (R 4.3.0)
+ yulab.utils        0.0.6     2022-12-20 [1] CRAN (R 4.3.0)
+ zlibbioc           1.46.0    2023-04-25 [1] Bioconductor
+
+ [1] /home/faalm/R/x86_64-pc-linux-gnu-library/4.3
+ [2] /usr/local/lib/R/site-library
+ [3] /usr/lib/R/site-library
+ [4] /usr/lib/R/library
+
+──────────────────────────────────────────────────────────────────────────────</code></pre>
+</div>
+</div>
+</section>
+<section id="references" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="references">References</h2>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" role="list">
+<div id="ref-van2018plaza" class="csl-entry" role="listitem">
+Van Bel, Michiel, Tim Diels, Emmelien Vancaester, Lukasz Kreft, Alexander Botzki, Yves Van de Peer, Frederik Coppens, and Klaas Vandepoele. 2018. <span>“PLAZA 4.0: An Integrative Resource for Functional, Evolutionary and Comparative Plant Genomics.”</span> <em>Nucleic Acids Research</em> 46 (D1): D1190–96.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../index.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Preface</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/02_orthogroup_inference_dbs.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>
