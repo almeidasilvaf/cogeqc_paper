@@ -8,3 +8,6 @@ products/plots/og_sizes_plot.rda
 data/*.Rmd
 data/brassicaceae_proteomes.rda
 products/figs/*.png
+products/plots/p_treeplot.rda
+/.quarto/
+/_book/

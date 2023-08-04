@@ -1,0 +1,224 @@
+---
+execute: 
+  echo: true
+  eval: false
+  warning: false
+---
+
+# Orthogroup assessment in Orthobench
+
+Here, we will assess the orthogroups from the Orthobench 
+data set [@trachana2011orthology; @emms2020benchmarking] using orthogroup
+scores.
+
+```{r}
+#| message: false
+#| warning: false
+#| eval: true
+set.seed(123)
+options(timeout = 6000)
+
+library(cogeqc)
+library(tidyverse)
+library(httr)
+library(here)
+library(biomartr)
+```
+
+## Data acquisition
+
+The data set can be obtained in [this GitHub repository](https://github.com/davidemms/Open_Orthobench/tree/master/BENCHMARKS). 
+First, let's create a data frame containing all gene IDs for each species.
+
+```{r}
+#| warning: false
+
+# Repo's URL
+url <- "https://api.github.com/repos/davidemms/Open_Orthobench/git/trees/master?recursive=2"
+
+# Get all file paths
+paths <- GET(url) |> content()
+
+# Get only file paths for sequence files
+paths <- unlist(lapply(paths$tree, function(x) x$path))
+sequence_paths <- data.frame(
+    Path = paths
+) |> 
+    separate(Path, c("base", "folder", "filename"), "/") |>
+    filter(folder == "Input") |>
+    filter(str_detect(filename, "\\.fa")) |>
+    mutate(
+        download_path = file.path(
+            "https://github.com/davidemms/Open_Orthobench/raw/master",
+            base, folder, filename
+        )
+    )
+
+# Create a data frame of gene IDs per species
+genes_per_species <- Reduce(rbind, lapply(seq_len(nrow(sequence_paths)), function(x) {
+    
+    species <- gsub(".pep.*", "", sequence_paths$filename[x])
+    gene_ids <- names(
+        Biostrings::readAAStringSet(sequence_paths$download_path[x])
+    )
+    
+    species_and_genes <- data.frame(
+        Species = species,
+        Gene = gene_ids
+    )
+    
+    return(species_and_genes)
+}))
+```
+
+Now, we will get all reference orthogroups from Orthobench and reshape them
+so that they look like the standard orthogroup data frame in __cogeqc__
+(with columns `Orthogroup`, `Species`, and `Gene`).
+
+```{r}
+# Get URL to each orthogroup
+og_paths <- data.frame(
+    Path = paths
+) |> 
+    separate(Path, c("base", "folder", "filename"), "/") |>
+    filter(folder == "RefOGs") |>
+    filter(str_detect(filename, "\\.txt")) |>
+    mutate(
+        download_path = file.path(
+            "https://github.com/davidemms/Open_Orthobench/raw/master",
+            base, folder, filename
+        )
+    )
+
+# Read orthogroups and reformat them as cogeqc's orthogroup data frame
+reference_ogs <- Reduce(rbind, lapply(seq_len(nrow(og_paths)), function(x) {
+    
+    og_name <- gsub(".txt", "", og_paths$filename[x])
+    og_genes <- readLines(og_paths$download_path[x])
+    
+    og_df <- data.frame(
+        Orthogroup = og_name,
+        Gene = og_genes
+    ) |>
+        left_join(genes_per_species) |>
+        dplyr::select(Orthogroup, Species, Gene)
+    
+    return(og_df)
+}))
+```
+
+```{r}
+#| echo: false
+save(
+    reference_ogs, compress = "xz",
+    file = here("products", "result_files", "reference_ogs.rda")
+)
+```
+
+```{r}
+#| eval: true
+#| echo: false
+load(here("products", "result_files", "reference_ogs.rda"))
+```
+
+Finally, we will use the biomartr package [@drost2017biomartr] to obtain 
+protein domain annotation for each species from Ensembl.
+
+```{r}
+annotation_list <- lapply(unique(reference_ogs$Species), function(x) {
+    
+    species_id <- paste0(
+        tolower(substr(x, 1, 1)), # first letter of genus
+        gsub(".*_", "", gsub("\\..*", "", x)) # entire specific epithet
+    )
+    
+    if(startsWith(x, "Canis")) {
+        species_id <- "clfamiliaris"
+    }
+    
+    genes <- reference_ogs |>
+        filter(Species == x) |>
+        pull(Gene)
+    
+    annot <- biomart(
+        genes = genes,
+        mart = "ENSEMBL_MART_ENSEMBL",
+        dataset = paste0(species_id, "_gene_ensembl"),
+        attributes = "interpro",
+        filters = "ensembl_peptide_id"
+    ) |>
+        dplyr::select(Gene = ensembl_peptide_id, Annotation = interpro)
+    
+    return(annot)
+})
+names(annotation_list) <- unique(reference_ogs$Species)
+
+# Remove empty elements (i.e., species for which we could not obtain annotation)
+empty <- sapply(annotation_list, nrow) == 0
+annotation_list <- annotation_list[!empty]
+```
+
+```{r}
+#| echo: false
+save(
+    annotation_list, compress = "xz",
+    file = here("products", "result_files", "annotation_list.rda")
+)
+```
+
+```{r}
+#| echo: false
+#| eval: true
+load(here("products", "result_files", "annotation_list.rda"))
+```
+
+## Orthogroup assessment
+
+Now that we have the orthogroup data frame and the annotation list, we can
+calculate homogeneity scores.
+
+```{r}
+#| eval: true
+#| fig-cap: "Homogeneity scores for Orthobench's reference orthogroups."
+
+p_orthobench_homogeneity <- reference_ogs |>
+    ## Remove species for which we could not obtain domain annotation
+    filter(Species %in% names(annotation_list)) |>
+    ## Calculate homogeneity scores
+    left_join(Reduce(rbind, annotation_list)) |>
+    calculate_H(correct_overclustering = FALSE) |>
+    dplyr::filter(!is.na(Score)) |>
+    ## Plot a histogram of scores
+    ggplot(aes(x = Score, y = ..count../sum(..count..))) +
+    geom_histogram(fill = "grey60", color = "black", bins = 60) +
+    labs(
+        title = "Homogeneity scores for Orthobench's reference orthogroups",
+        y = "Relative frequency", x = "Homogeneity scores"
+    ) +
+    xlim(0, 1) +
+    theme_bw()
+
+p_orthobench_homogeneity
+```
+
+The plot shows that homogeneity scores for reference orthogroups tend to be
+very close to 1, as expected, which validates the rationale behind our approach.
+Of note, most orthogroups do not reach perfect homogeneity, probably due to
+domain gains and losses throughout their evolution, but they are still very
+close to 1. In summary, our findings here demonstrate that reference-quality
+orthogroups should indeed have homogeneity scores as close to 1 as possible,
+and users should seek a similar distribution when inferring 
+orthogroups for their own data sets.
+
+## Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessioninfo}
+#| echo: false
+#| eval: true
+sessioninfo::session_info()
+```
+
+## References {.unnumbered}
+

@@ -1,0 +1,421 @@
+---
+execute: 
+  eval: false
+  echo: true
+  warning: false
+---
+
+# Appendices {.unnumbered}
+
+Here, you can find other pieces of code (Bash and R scripts) that were
+used in the main chapters. These pieces of code were stored in separate files
+to make the main text (i.e., book chapters) more readable.
+
+## Creating paper figures
+
+Below you can find the code used to create the figures in the paper.
+
+```{r}
+#' In this document, you can find the code to combine individual plots into
+#' panels that will be used in the main text
+
+#----Load data------------------------------------------------------------------
+library(here)
+library(patchwork)
+library(tidyverse)
+library(cogeqc)
+
+# Part 0
+## A
+output_dir <- system.file("extdata", package = "cogeqc")
+busco_summary <- read_busco(output_dir)
+
+data(batch_summary)
+
+## B
+maize_stats <- get_genome_stats(taxon = "Zea mays")
+my_stats <- data.frame(
+    accession = "my_lovely_maize",
+    sequence_length = 2.4 * 1e9,
+    gene_count_total = 50000,
+    CC_ratio = 2
+)
+
+## C 
+stats_dir <- system.file("extdata", package = "cogeqc")
+ortho_stats <- read_orthofinder_stats(stats_dir)
+data(tree)
+
+
+# Part 1
+load(here("products", "plots", "combined_tree_chlorophyta.rda"))
+
+# Part 2
+## A
+load(here("products", "plots", "plot_homogeneity_scores_dbs.rda")) # distros
+
+## B
+load(here("products", "plots", "p_distros_global.rda")) 
+load(here("products", "plots", "p_distros_mcl.rda")) 
+load(here("products", "plots", "p_distros_diamond.rda"))
+load(here("products", "plots", "p_distros_by_species.rda"))
+load(here("products", "plots", "p_treeplot.rda"))
+load(here("products", "plots", "p_distros_groups.rda"))
+load(here("products", "plots", "p_association_length_homogeneity.rda"))
+load(here("products", "plots", "relationship_og_number_and_size.rda"))
+
+# Part 3
+load(here("products", "plots", "synteny_scores_fabaceae.rda"))
+load(here("products", "plots", "synteny_scores_species.rda"))
+
+
+#----Combine plots and create figs----------------------------------------------
+## Figure 0: Example of figures that can be created with graphical functions
+fig0_p1 <- plot_genome_stats(ncbi_stats = maize_stats, user_stats = my_stats)
+
+fig0_p2 <- wrap_plots(
+    plot_busco(busco_summary),
+    plot_busco(batch_summary),
+    ncol = 2
+) +
+    theme(legend.position = "bottom")
+
+og_overlap <- plot_og_overlap(ortho_stats) +
+    scale_fill_gradient(
+        low = "#E5F5E0", high = "#00441B", name = "Overlap size (K)",
+        label = scales::unit_format(unit = "", scale = 1e-3)
+    ) +
+    theme(legend.position = "bottom")
+
+
+fig0_p3 <- wrap_plots(
+    plot_orthofinder_stats(
+        tree, stats_list = ortho_stats, xlim = c(-0.1, 2)
+    ),
+    og_overlap,
+    widths = c(4, 1), 
+    nrow = 1
+)
+
+fig0 <- wrap_plots(
+    fig0_p1, 
+    fig0_p2,
+    fig0_p3,
+    ncol = 1,
+    heights = c(2, 1, 1.5)
+) + 
+    plot_annotation(tag_levels = list(
+        c("A", rep("", 11), "B", "C", "D", rep("", 3), "E")
+    ))
+
+
+## Figure 1: BUSCO assessment
+fig1 <- combined + 
+    ggtitle("Percentage of BUSCOs for each species") +
+    plot_layout(guides = "collect", widths = c(2,3)) &
+    theme(legend.position = "bottom") &
+    ggplot2::scale_fill_manual(labels = c(
+        "Complete & SC", "Complete & duplicate", "Fragmented", "Missing"
+    ),
+    values = c(
+        "#32709a", "#59AAE1", "darkgoldenrod2", "#db5850"
+    )) 
+
+
+## Figure 2: Orthogroup assessment
+p_distros_global <- p_distros_global +
+    scale_x_discrete(
+        labels = c(
+            "default_1" = "Default, 1",
+            "default_1_5" = "Default, 1.5",
+            "default_2" = "Default, 2",
+            "default_3" = "Default, 3",
+            "ultra_1" = "Ultra, 1",
+            "ultra_1_5" = "Ultra, 1.5",
+            "ultra_2" = "Ultra, 2",
+            "ultra_3" = "Ultra, 3"
+        )
+    )
+
+p_distros_diamond <- p_distros_diamond + 
+    ggtitle("Effect of DIAMOND mode on orthogroup inference")
+
+
+p_association_length_homogeneity <- p_association_length_homogeneity + 
+    ggtitle("Relationship between OG homogeneity and gene length")
+
+
+percentage_bars <- percentage_plot + scale_y_discrete(
+    labels = c(
+        "default_1" = "Default, 1",
+        "default_1_5" = "Default, 1.5",
+        "default_2" = "Default, 2",
+        "default_3" = "Default, 3",
+        "ultra_1" = "Ultra, 1",
+        "ultra_1_5" = "Ultra, 1.5",
+        "ultra_2" = "Ultra, 2",
+        "ultra_3" = "Ultra, 3"
+    )
+) +
+    ggpubr::theme_pubr()
+
+
+fig2 <- patchwork::wrap_plots(
+    wrap_plots(distros, p_distros_global, nrow = 1), # row 1
+    p_distros_by_species + 
+        theme(axis.text.x = element_text(angle = 60, vjust = 0.5)), # row 2
+    wrap_plots(p_distros_mcl, p_distros_diamond, nrow = 1), # row 3
+    percentage_bars, # row 4
+    ncol = 1
+) + 
+    plot_annotation(tag_levels = "A")
+
+## Figure 3: sequence and score relationship + functional analysis of OG clusters
+### Change font size of tip labels
+ptree <- p_treeplot
+ptree[[1]]$layers[[6]]$aes_params$size <- 3.5
+ptree[[2]]$layers[[6]]$aes_params$size <- 3.5
+ptree[[3]]$layers[[6]]$aes_params$size <- 3.5
+ptree[[2]]$data$label <- gsub(" \\(.*", "", ptree[[2]]$data$label)
+ptree[[2]]$data$label <- gsub(
+    "signaling pathway", "signaling", ptree[[2]]$data$label
+)
+
+upper <- wrap_plots(p_association_length_homogeneity, p_distros_groups, widths = c(1, 1.5))
+bottom <- ptree + theme(plot.margin = margin(0, 0, 0, 0, "pt"))
+
+fig3 <- wrap_plots(upper, plot_spacer(), heights = c(1, 2)) +
+    inset_element(bottom, 0, 0, 1, 1, align_to = "full") +
+    plot_annotation(tag_levels = "A")
+
+
+## Figure 4: synteny
+fig4 <- wrap_plots(
+    synteny_scores_fabaceae, 
+    synteny_scores_species + theme(legend.position = "bottom"),
+    ncol = 1, heights = c(1, 3)
+) +
+    plot_annotation(tag_levels = "A")
+
+
+#----Save plots in figs/ -------------------------------------------------------
+## Figure 0
+ggsave(
+    fig0, 
+    filename = here("products", "figs", "figure_0_graphical_functions.png"),
+    width = 18, height = 12, dpi = 400
+)
+
+ggsave(
+    fig0, 
+    filename = here("products", "figs", "figure_0_graphical_functions.pdf"),
+    width = 19, height = 12
+)
+
+
+## Figure 1
+ggsave(
+    fig1,
+    filename = here("products", "figs", "figure_1_busco_assessment.png"),
+    width = 13, height = 8, dpi = 600
+)
+
+ggsave(
+    fig1,
+    filename = here("products", "figs", "figure_1_busco_assessment.pdf"),
+    width = 13, height = 8
+)
+
+## Figure 2
+ggsave(
+    fig2,
+    filename = here("products", "figs", "figure_2_homogeneity_assessment.png"),
+    width = 17, height = 18, dpi = 300
+)
+
+ggsave(
+    fig2,
+    filename = here("products", "figs", "figure_2_homogeneity_assessment.pdf"),
+    width = 17, height = 18
+)
+
+# Figure 3
+ggsave(
+    fig3, 
+    filename = here("products", "figs", "figure_3_ogs_brassicaceae.png"),
+    width = 23, height = 12, dpi = 300
+)
+
+ggsave(
+    fig3, 
+    filename = here("products", "figs", "figure_3_ogs_brassicaceae.pdf"),
+    width = 23, height = 12
+)
+
+# Figure 4
+ggsave(
+    fig4, 
+    filename = here("products", "figs", "figure_4_synteny_assessment.png"),
+    width = 8, height = 10, dpi = 300
+)
+
+ggsave(
+    fig4, 
+    filename = here("products", "figs", "figure_4_synteny_assessment.pdf"),
+    width = 8, height = 10
+)
+```
+
+## Utility functions
+
+Below you can find the source code for some helper functions/wrappers 
+that are used in the main chapters.
+
+```{r}
+
+extract_ogs_uniprot <- function(proteins = NULL) {
+    
+    ogs <- lapply(proteins, function(x) {
+        
+        url <- paste0("https://www.ebi.ac.uk/proteins/api/proteins/", x)
+        request <- httr::GET(url)
+        annot <- httr::content(request, type = "application/json", 
+                               as = "parsed", encoding = "UTF-8")
+        dbref <- lapply(annot$dbReferences, as.data.frame)
+        names(dbref) <- vapply(dbref, function(x) return(x$type), character(1))
+        
+        orthodb <- NA
+        eggnog <- NA
+        inparanoid <- NA
+        phylomedb <- NA
+        hogenom <- NA
+        if("eggNOG" %in% names(dbref)) {
+            eggnog <- dbref$eggNOG$id
+        }
+        if("OrthoDB" %in% names(dbref)) {
+            orthodb <- dbref$OrthoDB$id
+        }
+        if("InParanoid" %in% names(dbref)) {
+            inparanoid <- dbref$InParanoid$id
+        }
+        if("PhylomeDB" %in% names(dbref)) {
+            phylomedb <- dbref$PhylomeDB$id
+        }
+        if("HOGENOM" %in% names(dbref)) {
+            hogenom <- dbref$HOGENOM$id
+        }
+        if(!"Araport" %in% names(dbref)) {
+            df <- NULL
+        } else {
+            df <- data.frame(
+                Gene = dbref$Araport$id,
+                OrthoDB = orthodb,
+                eggNOG = eggnog,
+                OrthoDB = orthodb,
+                InParanoid = inparanoid,
+                PhylomeDB = phylomedb,
+                HOGENOM = hogenom
+            )
+        }
+        return(df)
+    })
+    og_df <- Reduce(rbind, ogs)
+    return(og_df)
+}
+
+
+compare <- function(data, form, ref = NULL) {
+    # Wilcoxon test - greater and less alternatives
+    wilcoxtest_greater <- tibble::as_tibble(data) %>%
+        rstatix::wilcox_test(
+            formula(form), p.adjust.method = "BH", ref.group = ref,
+            alternative = "greater"
+        )
+    pg <- ifelse("p.adj" %in% names(wilcoxtest_greater), "p.adj", "p")
+    wilcoxtest_greater <- wilcoxtest_greater %>% dplyr::select(
+            group1, group2, n1, n2, padj_greater = all_of(pg)
+        )
+    
+    wilcoxtest_less <- tibble::as_tibble(data) %>%
+        rstatix::wilcox_test(
+            formula(form), p.adjust.method = "BH", ref.group = ref,
+            alternative = "less"
+        )
+    pl <- ifelse("p.adj" %in% names(wilcoxtest_less), "p.adj", "p")
+    wilcoxtest_less <- wilcoxtest_less %>% dplyr::select(
+        group1, group2, n1, n2, padj_less = all_of(pl)
+    )
+    
+    wilcox_summary <- dplyr::inner_join(wilcoxtest_greater, wilcoxtest_less) %>%
+        dplyr::mutate(padj_interpretation = dplyr::case_when(
+            padj_less < 0.05 ~ "less",
+            padj_greater < 0.05 ~ "greater",
+            TRUE ~ "ns"
+        ))
+    
+    # Effect sizes for Wilcoxon test - greater and less alternatives
+    
+    effsize <- tibble::as_tibble(data) %>%
+        rstatix::wilcox_effsize(
+            formula(form), ref.group = ref,
+        ) %>%
+        dplyr::select(
+            group1, group2, effsize, magnitude
+        )
+    
+    
+    result <- as.data.frame(inner_join(wilcox_summary, effsize))
+        
+    return(result)
+}
+
+
+filter_comparison <- function(compare_output) {
+    
+    filtered_df <- compare_output |>
+        dplyr::filter(padj_interpretation != "ns") |>
+        mutate(padj = case_when(
+            padj_interpretation == "greater" ~ padj_greater,
+            padj_interpretation == "less" ~ padj_less
+        )) |>
+        dplyr::select(group1, group2, n1, n2, padj, effsize, magnitude)
+    
+    return(filtered_df)
+}
+```
+
+
+## Bash code
+
+Below, you can find the Bash code I used to run OrthoFinder.
+
+```{bash}
+#!/bin/bash
+
+# Define paths
+workdir='/home/faalm/projects/cogeqc_benchmark'
+outdir='/home/faalm/projects/cogeqc_benchmark/products/result_files'
+
+# Run OrthoFinder - default DIAMOND
+orthofinder -f "$workdir/data" -S diamond -I 1.5 -o "$outdir/default_1_5" -og
+orthofinder -f "$workdir/data" -S diamond -I 2 -o "$outdir/default_2" -og
+orthofinder -f "$workdir/data" -S diamond -I 3 -o "$outdir/default_3" -og
+orthofinder -f "$workdir/data" -S diamond -I 1 -o "$outdir/default_1" -og
+
+# Run OrthoFinder - ultrasensitive DIAMOND
+orthofinder -f "$workdir/data" -S diamond_ultra_sens -I 1.5 -t 8 -o "$outdir/ultra_1_5" -og
+orthofinder -f "$workdir/data" -S diamond_ultra_sens -I 2 -t 8 -o "$outdir/ultra_2" -og
+orthofinder -f "$workdir/data" -S diamond_ultra_sens -I 3 -t 8 -o "$outdir/ultra_3" -og
+orthofinder -f "$workdir/data" -S diamond_ultra_sens -I 1 -t 8 -o "$outdir/ultra_1" -og
+```
+
+## Session information
+
+This document was created under the following conditions:
+
+```{r}
+#| echo: false
+#| eval: true
+sessioninfo::session_info()
+```
+

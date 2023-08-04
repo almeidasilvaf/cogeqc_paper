@@ -1,0 +1,30 @@
+project:
+  type: book
+
+book:
+  title: |
+    Code and data for "Assessing the quality of comparative genomics data and results with the cogeqc R/Bioconductor package"
+  author: 
+    - name: Fabricio Almeida-Silva
+      orcid: 0000-0002-5314-2964
+  date: "2023"
+  chapters:
+    - index.qmd
+    - chapters/01_busco_assessment.qmd
+    - chapters/02_orthogroup_inference_dbs.qmd
+    - chapters/03_orthogroup_inference_brassicaceae.qmd
+    - chapters/04_orthogroup_assessment_orthobench.qmd
+    - chapters/05_synteny_assessment_fabaceae.qmd
+    - chapters/appendices.qmd
+
+bibliography: bibliography.bib
+
+execute:
+  freeze: auto
+
+format:
+  html:
+    theme: cosmo
+
+editor: 
+  mode: source
