@@ -2,12 +2,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.433">
+<meta name="generator" content="quarto-1.3.450">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>Code and data for “Assessing the quality of comparative genomics data and results with the cogeqc R/Bioconductor package” - 3&nbsp; Assessing orthogroup inference for Brassicaceae genomes</title>
+<title>Code and data for “Assessing the quality of comparative genomics data and results with the cogeqc R/Bioconductor package” - 4&nbsp; Assessing orthogroup inference for Brassicaceae genomes</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -83,8 +83,8 @@ div.csl-indent {
 <script src="../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../">
-<link href="../chapters/04_orthogroup_assessment_orthobench.html" rel="next">
-<link href="../chapters/02_orthogroup_inference_dbs.html" rel="prev">
+<link href="../chapters/05_synteny_assessment_fabaceae.html" rel="next">
+<link href="../chapters/03_orthogroup_inference_dbs.html" rel="prev">
 <script src="../site_libs/quarto-html/quarto.js"></script>
 <script src="../site_libs/quarto-html/popper.min.js"></script>
 <script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
@@ -129,7 +129,7 @@ div.csl-indent {
       <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
         <i class="bi bi-layout-text-sidebar-reverse"></i>
       </button>
-      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/03_orthogroup_inference_brassicaceae.html"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></a></li></ol></nav>
+      <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/04_orthogroup_inference_brassicaceae.html"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></a></li></ol></nav>
       <a class="flex-grow-1" role="button" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar,#quarto-sidebar-glass" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
       </a>
       <button type="button" class="btn quarto-search-button" aria-label="" onclick="window.quartoOpenSearch();">
@@ -168,20 +168,20 @@ div.csl-indent {
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/02_orthogroup_inference_dbs.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span></a>
+  <a href="../chapters/02_orthogroup_assessment_orthobench.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Orthogroup assessment in Orthobench</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/03_orthogroup_inference_brassicaceae.html" class="sidebar-item-text sidebar-link active">
- <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></span></a>
+  <a href="../chapters/03_orthogroup_inference_dbs.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
   <div class="sidebar-item-container"> 
-  <a href="../chapters/04_orthogroup_assessment_orthobench.html" class="sidebar-item-text sidebar-link">
- <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Orthogroup assessment in Orthobench</span></span></a>
+  <a href="../chapters/04_orthogroup_inference_brassicaceae.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></span></a>
   </div>
 </li>
         <li class="sidebar-item">
@@ -206,18 +206,18 @@ div.csl-indent {
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#orthogroup-inference" id="toc-orthogroup-inference" class="nav-link active" data-scroll-target="#orthogroup-inference"><span class="header-section-number">3.1</span> Orthogroup inference</a></li>
-  <li><a href="#exploratory-analysis-of-orthogroup-inference-results" id="toc-exploratory-analysis-of-orthogroup-inference-results" class="nav-link" data-scroll-target="#exploratory-analysis-of-orthogroup-inference-results"><span class="header-section-number">3.2</span> Exploratory analysis of orthogroup inference results</a></li>
-  <li><a href="#orthogroup-assessment" id="toc-orthogroup-assessment" class="nav-link" data-scroll-target="#orthogroup-assessment"><span class="header-section-number">3.3</span> Orthogroup assessment</a></li>
-  <li><a href="#comparing-and-visualizing-homogeneity-statistics" id="toc-comparing-and-visualizing-homogeneity-statistics" class="nav-link" data-scroll-target="#comparing-and-visualizing-homogeneity-statistics"><span class="header-section-number">3.4</span> Comparing and visualizing homogeneity statistics</a>
+  <li><a href="#orthogroup-inference" id="toc-orthogroup-inference" class="nav-link active" data-scroll-target="#orthogroup-inference"><span class="header-section-number">4.1</span> Orthogroup inference</a></li>
+  <li><a href="#exploratory-analysis-of-orthogroup-inference-results" id="toc-exploratory-analysis-of-orthogroup-inference-results" class="nav-link" data-scroll-target="#exploratory-analysis-of-orthogroup-inference-results"><span class="header-section-number">4.2</span> Exploratory analysis of orthogroup inference results</a></li>
+  <li><a href="#orthogroup-assessment" id="toc-orthogroup-assessment" class="nav-link" data-scroll-target="#orthogroup-assessment"><span class="header-section-number">4.3</span> Orthogroup assessment</a></li>
+  <li><a href="#comparing-and-visualizing-homogeneity-statistics" id="toc-comparing-and-visualizing-homogeneity-statistics" class="nav-link" data-scroll-target="#comparing-and-visualizing-homogeneity-statistics"><span class="header-section-number">4.4</span> Comparing and visualizing homogeneity statistics</a>
   <ul class="collapse">
-  <li><a href="#global-distributions" id="toc-global-distributions" class="nav-link" data-scroll-target="#global-distributions"><span class="header-section-number">3.4.1</span> Global distributions</a></li>
-  <li><a href="#the-effect-of-species-choice" id="toc-the-effect-of-species-choice" class="nav-link" data-scroll-target="#the-effect-of-species-choice"><span class="header-section-number">3.4.2</span> The effect of species choice</a></li>
-  <li><a href="#the-effect-of-mcl-inflation-parameters" id="toc-the-effect-of-mcl-inflation-parameters" class="nav-link" data-scroll-target="#the-effect-of-mcl-inflation-parameters"><span class="header-section-number">3.4.3</span> The effect of mcl inflation parameters</a></li>
-  <li><a href="#the-effect-of-diamond-mode-default-vs-ultra" id="toc-the-effect-of-diamond-mode-default-vs-ultra" class="nav-link" data-scroll-target="#the-effect-of-diamond-mode-default-vs-ultra"><span class="header-section-number">3.4.4</span> The effect of DIAMOND mode (default vs ultra)</a></li>
+  <li><a href="#global-distributions" id="toc-global-distributions" class="nav-link" data-scroll-target="#global-distributions"><span class="header-section-number">4.4.1</span> Global distributions</a></li>
+  <li><a href="#the-effect-of-species-choice" id="toc-the-effect-of-species-choice" class="nav-link" data-scroll-target="#the-effect-of-species-choice"><span class="header-section-number">4.4.2</span> The effect of species choice</a></li>
+  <li><a href="#the-effect-of-mcl-inflation-parameters" id="toc-the-effect-of-mcl-inflation-parameters" class="nav-link" data-scroll-target="#the-effect-of-mcl-inflation-parameters"><span class="header-section-number">4.4.3</span> The effect of mcl inflation parameters</a></li>
+  <li><a href="#the-effect-of-diamond-mode-default-vs-ultra" id="toc-the-effect-of-diamond-mode-default-vs-ultra" class="nav-link" data-scroll-target="#the-effect-of-diamond-mode-default-vs-ultra"><span class="header-section-number">4.4.4</span> The effect of DIAMOND mode (default vs ultra)</a></li>
   </ul></li>
-  <li><a href="#functional-analysis-of-homogeneous-and-heterogeneous-gene-families" id="toc-functional-analysis-of-homogeneous-and-heterogeneous-gene-families" class="nav-link" data-scroll-target="#functional-analysis-of-homogeneous-and-heterogeneous-gene-families"><span class="header-section-number">3.5</span> Functional analysis of homogeneous and heterogeneous gene families</a></li>
-  <li><a href="#is-there-an-association-between-og-score-and-og-gene-length" id="toc-is-there-an-association-between-og-score-and-og-gene-length" class="nav-link" data-scroll-target="#is-there-an-association-between-og-score-and-og-gene-length"><span class="header-section-number">3.6</span> Is there an association between OG score and OG gene length?</a></li>
+  <li><a href="#functional-analysis-of-homogeneous-and-heterogeneous-gene-families" id="toc-functional-analysis-of-homogeneous-and-heterogeneous-gene-families" class="nav-link" data-scroll-target="#functional-analysis-of-homogeneous-and-heterogeneous-gene-families"><span class="header-section-number">4.5</span> Functional analysis of homogeneous and heterogeneous gene families</a></li>
+  <li><a href="#is-there-an-association-between-og-score-and-og-gene-length" id="toc-is-there-an-association-between-og-score-and-og-gene-length" class="nav-link" data-scroll-target="#is-there-an-association-between-og-score-and-og-gene-length"><span class="header-section-number">4.6</span> Is there an association between OG score and OG gene length?</a></li>
   <li><a href="#session-info" id="toc-session-info" class="nav-link" data-scroll-target="#session-info">Session info</a></li>
   <li><a href="#references" id="toc-references" class="nav-link" data-scroll-target="#references">References</a></li>
   </ul>
@@ -228,7 +228,7 @@ div.csl-indent {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></h1>
+<h1 class="title"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference for Brassicaceae genomes</span></h1>
 </div>
 
 
@@ -273,8 +273,8 @@ div.csl-indent {
 <span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">here</span>(<span class="st">"code"</span>, <span class="st">"utils.R"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<section id="orthogroup-inference" class="level2" data-number="3.1">
-<h2 data-number="3.1" class="anchored" data-anchor-id="orthogroup-inference"><span class="header-section-number">3.1</span> Orthogroup inference</h2>
+<section id="orthogroup-inference" class="level2" data-number="4.1">
+<h2 data-number="4.1" class="anchored" data-anchor-id="orthogroup-inference"><span class="header-section-number">4.1</span> Orthogroup inference</h2>
 <p>To start, we will load the proteome data and export each proteome as a FASTA file in the <code>data</code> directory, so we can pass it to OrthoFinder.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load proteomes</span></span>
@@ -300,8 +300,8 @@ div.csl-indent {
 </div>
 <p>The <em>Orthogroups.tsv</em> files were all moved to the directory <code>products/result_files</code>.</p>
 </section>
-<section id="exploratory-analysis-of-orthogroup-inference-results" class="level2" data-number="3.2">
-<h2 data-number="3.2" class="anchored" data-anchor-id="exploratory-analysis-of-orthogroup-inference-results"><span class="header-section-number">3.2</span> Exploratory analysis of orthogroup inference results</h2>
+<section id="exploratory-analysis-of-orthogroup-inference-results" class="level2" data-number="4.2">
+<h2 data-number="4.2" class="anchored" data-anchor-id="exploratory-analysis-of-orthogroup-inference-results"><span class="header-section-number">4.2</span> Exploratory analysis of orthogroup inference results</h2>
 <p>Now that we have the <em>Orthogroups.tsv</em> files from OrthoFinder, let’s load them.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Extract tar.xz file</span></span>
@@ -447,8 +447,8 @@ div.csl-indent {
 <span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="fu">names</span>(ogs_filtered) <span class="ot">&lt;-</span> <span class="fu">names</span>(ogs)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="orthogroup-assessment" class="level2" data-number="3.3">
-<h2 data-number="3.3" class="anchored" data-anchor-id="orthogroup-assessment"><span class="header-section-number">3.3</span> Orthogroup assessment</h2>
+<section id="orthogroup-assessment" class="level2" data-number="4.3">
+<h2 data-number="4.3" class="anchored" data-anchor-id="orthogroup-assessment"><span class="header-section-number">4.3</span> Orthogroup assessment</h2>
 <p>Now, let’s get InterPro domain annotation for the following species to assess orthogroups:</p>
 <ul>
 <li><em>A. thaliana</em></li>
@@ -509,8 +509,8 @@ div.csl-indent {
 <span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="comparing-and-visualizing-homogeneity-statistics" class="level2" data-number="3.4">
-<h2 data-number="3.4" class="anchored" data-anchor-id="comparing-and-visualizing-homogeneity-statistics"><span class="header-section-number">3.4</span> Comparing and visualizing homogeneity statistics</h2>
+<section id="comparing-and-visualizing-homogeneity-statistics" class="level2" data-number="4.4">
+<h2 data-number="4.4" class="anchored" data-anchor-id="comparing-and-visualizing-homogeneity-statistics"><span class="header-section-number">4.4</span> Comparing and visualizing homogeneity statistics</h2>
 <p>Here, we will compare and visualize how the homogeneity scores are affected by:</p>
 <ul>
 <li>different species choice</li>
@@ -594,8 +594,8 @@ div.csl-indent {
 </table>
 </div>
 </div>
-<section id="global-distributions" class="level3" data-number="3.4.1">
-<h3 data-number="3.4.1" class="anchored" data-anchor-id="global-distributions"><span class="header-section-number">3.4.1</span> Global distributions</h3>
+<section id="global-distributions" class="level3" data-number="4.4.1">
+<h3 data-number="4.4.1" class="anchored" data-anchor-id="global-distributions"><span class="header-section-number">4.4.1</span> Global distributions</h3>
 <p>Here, we will compare and visualize all distros considering different DIAMOND modes and mcl inflation values. To start, let’s perform Wilcoxon tests for all combinations of modes and obtain effect sizes.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Relevel 'Mode' factor</span></span>
@@ -930,15 +930,15 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/og-distros-viz-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/og-distros-viz-1.png" class="img-fluid figure-img" width="768"></p>
 <figcaption class="figure-caption">Distribution of mean orthogroup scores for each OrthoFinder run.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="the-effect-of-species-choice" class="level3" data-number="3.4.2">
-<h3 data-number="3.4.2" class="anchored" data-anchor-id="the-effect-of-species-choice"><span class="header-section-number">3.4.2</span> The effect of species choice</h3>
+<section id="the-effect-of-species-choice" class="level3" data-number="4.4.2">
+<h3 data-number="4.4.2" class="anchored" data-anchor-id="the-effect-of-species-choice"><span class="header-section-number">4.4.2</span> The effect of species choice</h3>
 <p>Here, we will compare the distributions of orthogroups scores using each species individually to see if the species choice has an impact on the conclusions.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>og_species_long <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(rbind, <span class="fu">lapply</span>(<span class="dv">2</span><span class="sc">:</span><span class="dv">8</span>, <span class="cf">function</span>(x) {</span>
@@ -1010,7 +1010,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/species-choice-1.png" class="img-fluid figure-img" width="1152"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/species-choice-1.png" class="img-fluid figure-img" width="1152"></p>
 <figcaption class="figure-caption">Distribution of orthogroup scores for each OrthoFinder run calculated for each species separately.</figcaption>
 </figure>
 </div>
@@ -1018,8 +1018,8 @@ div.csl-indent {
 </div>
 <p>We conclude that the species choice does not affect the comparisons of orthogroup scores among OrthoFinder runs.</p>
 </section>
-<section id="the-effect-of-mcl-inflation-parameters" class="level3" data-number="3.4.3">
-<h3 data-number="3.4.3" class="anchored" data-anchor-id="the-effect-of-mcl-inflation-parameters"><span class="header-section-number">3.4.3</span> The effect of mcl inflation parameters</h3>
+<section id="the-effect-of-mcl-inflation-parameters" class="level3" data-number="4.4.3">
+<h3 data-number="4.4.3" class="anchored" data-anchor-id="the-effect-of-mcl-inflation-parameters"><span class="header-section-number">4.4.3</span> The effect of mcl inflation parameters</h3>
 <p>Here, we will explore the impact of changing mcl inflation parameters in the homogeneity of orthogroups.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Process data to include information on DIAMOND mode and mcl</span></span>
@@ -1233,15 +1233,15 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/viz-og-mcl-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/viz-og-mcl-1.png" class="img-fluid figure-img" width="768"></p>
 <figcaption class="figure-caption">Effect of MCL inflation values on orthogroup scores.</figcaption>
 </figure>
 </div>
 </div>
 </div>
 </section>
-<section id="the-effect-of-diamond-mode-default-vs-ultra" class="level3" data-number="3.4.4">
-<h3 data-number="3.4.4" class="anchored" data-anchor-id="the-effect-of-diamond-mode-default-vs-ultra"><span class="header-section-number">3.4.4</span> The effect of DIAMOND mode (default vs ultra)</h3>
+<section id="the-effect-of-diamond-mode-default-vs-ultra" class="level3" data-number="4.4.4">
+<h3 data-number="4.4.4" class="anchored" data-anchor-id="the-effect-of-diamond-mode-default-vs-ultra"><span class="header-section-number">4.4.4</span> The effect of DIAMOND mode (default vs ultra)</h3>
 <p>Here, we will investigate whether changing the DIAMOND mode (default vs ultrasensitive) in OrthoFinder affects orthogroup homogeneity.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare median scores</span></span>
@@ -1359,7 +1359,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/og-diamond-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/og-diamond-1.png" class="img-fluid figure-img" width="768"></p>
 <figcaption class="figure-caption">Effect of DIAMOND mode on orthogroup scores.</figcaption>
 </figure>
 </div>
@@ -1367,8 +1367,8 @@ div.csl-indent {
 </div>
 </section>
 </section>
-<section id="functional-analysis-of-homogeneous-and-heterogeneous-gene-families" class="level2" data-number="3.5">
-<h2 data-number="3.5" class="anchored" data-anchor-id="functional-analysis-of-homogeneous-and-heterogeneous-gene-families"><span class="header-section-number">3.5</span> Functional analysis of homogeneous and heterogeneous gene families</h2>
+<section id="functional-analysis-of-homogeneous-and-heterogeneous-gene-families" class="level2" data-number="4.5">
+<h2 data-number="4.5" class="anchored" data-anchor-id="functional-analysis-of-homogeneous-and-heterogeneous-gene-families"><span class="header-section-number">4.5</span> Functional analysis of homogeneous and heterogeneous gene families</h2>
 <p>By looking at the global distributions of homogeneity scores, we can see that all distributions have a similar shape. This pattern suggests that some gene families tend to be more homogeneous (scores close to 1), while others tend to include domains that are not shared by all members. The latter can be, for instance, rapidly evolving families that gain or lose domains at faster rates.</p>
 <p>To explore what these groups of families contain, we will perform a functional enrichment analysis each group. First of anything, let’s plot the distribution for the default OrthoFinder mode and highlight the groups.</p>
 <div class="cell">
@@ -1390,7 +1390,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/plot-distros-with-groups-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/plot-distros-with-groups-1.png" class="img-fluid figure-img" width="672"></p>
 <figcaption class="figure-caption">Distribution of mean homogeneity scores for orthogroups</figcaption>
 </figure>
 </div>
@@ -1645,7 +1645,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/plot-treeplot-1.png" class="img-fluid figure-img" width="1920"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/plot-treeplot-1.png" class="img-fluid figure-img" width="1920"></p>
 <figcaption class="figure-caption">Tree plot of functional terms associated with each orthogroup cluster.</figcaption>
 </figure>
 </div>
@@ -1685,7 +1685,7 @@ div.csl-indent {
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/plot-dotplot-1.png" class="img-fluid figure-img" width="1728"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/plot-dotplot-1.png" class="img-fluid figure-img" width="1728"></p>
 <figcaption class="figure-caption">Dotplot of functional terms associated with each orthogroup cluster.</figcaption>
 </figure>
 </div>
@@ -1698,8 +1698,8 @@ div.csl-indent {
 <li><p><strong>Group 3:</strong> photosynthesis, zinc and amino acid transport, DNA replication, endocytosis, cell-cell junction assembly, and toxin catabolism.</p></li>
 </ul>
 </section>
-<section id="is-there-an-association-between-og-score-and-og-gene-length" class="level2" data-number="3.6">
-<h2 data-number="3.6" class="anchored" data-anchor-id="is-there-an-association-between-og-score-and-og-gene-length"><span class="header-section-number">3.6</span> Is there an association between OG score and OG gene length?</h2>
+<section id="is-there-an-association-between-og-score-and-og-gene-length" class="level2" data-number="4.6">
+<h2 data-number="4.6" class="anchored" data-anchor-id="is-there-an-association-between-og-score-and-og-gene-length"><span class="header-section-number">4.6</span> Is there an association between OG score and OG gene length?</h2>
 <p><span class="citation" data-cites="emms2015orthofinder">Emms and Kelly (<a href="#ref-emms2015orthofinder" role="doc-biblioref">2015</a>)</span> have demonstrated a gene length bias that influences the accuracy of orthogroup detection. This is because short sequences cannot produce large bit scores or low e-values, and long sequences produce many hits with scores better than those for the best hits of short sequences <span class="citation" data-cites="emms2015orthofinder">(<a href="#ref-emms2015orthofinder" role="doc-biblioref">Emms and Kelly 2015</a>)</span>. OrthoFinder implements a score transform that claims to eliminate such bias. But does it remove the bias completely?</p>
 <p>To answer this question, we will use homogeneity scores for the default OrthoFinder run (default DIAMOND mode, mcl = 1.5).</p>
 <p>First of all, let’s calculate the mean and median gene length for each orthogroup.</p>
@@ -1757,40 +1757,65 @@ div.csl-indent {
 <span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">compress =</span> <span class="st">"xz"</span></span>
 <span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Now, let’s plot the data.</p>
+<p>Next, let’s explore a potential association between the two variables. Here, since the distribution of homogeneity scores is highly right-skewed, we will perform a correlation test using Spearman’s <span class="math inline">\(\rho\)</span> as a measure of association.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity <span class="ot">&lt;-</span> og_length_and_scores <span class="sc">%&gt;%</span></span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">logH =</span> <span class="fu">log10</span>(Median_H),</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">logLength =</span> <span class="fu">log10</span>(median_length)</span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggscatter</span>(</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        ., <span class="at">x =</span> <span class="st">"logLength"</span>, <span class="at">y =</span> <span class="st">"logH"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>,</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">1</span>,</span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">add =</span> <span class="st">"reg.line"</span>, <span class="at">add.params =</span> <span class="fu">list</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">fill =</span> <span class="st">"lightgray"</span>),</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">conf.int =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">cor.coef =</span> <span class="cn">TRUE</span>, </span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">cor.coeff.args =</span> <span class="fu">list</span>(</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>            <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">label.x =</span> <span class="fl">1.7</span>, <span class="at">label.y =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">label.sep =</span> <span class="st">"</span><span class="sc">\n</span><span class="st">"</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        )</span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Relationship between OG homogeneity score and gene length"</span>,</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>]<span class="sc">~</span><span class="st">"median gene length"</span>),</span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>]<span class="sc">~</span><span class="st">"median homogeneity score"</span>)</span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ogl <span class="ot">&lt;-</span> og_length_and_scores<span class="sc">$</span>median_length</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>ogs <span class="ot">&lt;-</span> og_length_and_scores<span class="sc">$</span>Median_H</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Spearman's correlation coefficient</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>cor_spearman <span class="ot">&lt;-</span> <span class="fu">cor.test</span>(ogl, ogs, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">exact =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>cor_spearman</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    Spearman's rank correlation rho
+
+data:  ogl and ogs
+S = 9.7041e+11, p-value &lt; 2.2e-16
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+      rho 
+-0.190358 </code></pre>
+</div>
+</div>
+<p>Finally, let’s plot the data and add the test statistics.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity <span class="ot">&lt;-</span> og_length_and_scores <span class="sc">%&gt;%</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">logH =</span> <span class="fu">log10</span>(Median_H <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">logLength =</span> <span class="fu">log10</span>(median_length <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggscatter</span>(</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        ., <span class="at">x =</span> <span class="st">"logLength"</span>, <span class="at">y =</span> <span class="st">"logH"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>,</span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
+<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.7</span>, <span class="at">y =</span> <span class="fl">0.05</span>, </span>
+<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"rho"</span>, <span class="st">"=="</span>, <span class="fu">signif</span>(cor_spearman<span class="sc">$</span>estimate, <span class="dv">2</span>)),</span>
+<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">parse =</span> <span class="cn">TRUE</span></span>
+<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
+<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.71</span>, <span class="at">y =</span> <span class="fl">0.03</span>,</span>
+<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"P"</span>, <span class="st">"&lt;"</span>, <span class="fl">2.2e-16</span>), <span class="at">parse =</span> <span class="cn">TRUE</span></span>
+<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Relationship between OG score and gene length"</span>,</span>
+<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median gene length"</span>),</span>
+<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median homogeneity score"</span>)</span>
+<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="03_orthogroup_inference_brassicaceae_files/figure-html/plot-og-length-h-1.png" class="img-fluid figure-img" width="768"></p>
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/plot-og-length-h-1.png" class="img-fluid figure-img" width="768"></p>
 <figcaption class="figure-caption">Relationship between sequence length and orthogroup scores.</figcaption>
 </figure>
 </div>
 </div>
 </div>
-<p>There is a significant, negative association between homogeneity and OG gene length, but the strength of association is small (<span class="math inline">\(R^2 = -0.2\)</span>). Although weak, this negative relationship shows that OrthoFinder can reduce the gene length bias, but not completely.</p>
+<p>The data and correlation test show that there is a significant negative correlation between homogeneity and OG gene length, but the correlation is weak (<span class="math inline">\(\rho = -0.19\)</span>). Although weak, this negative relationship shows that OrthoFinder can reduce the gene length bias, but not completely.</p>
 </section>
 <section id="session-info" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
@@ -1807,7 +1832,7 @@ div.csl-indent {
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Europe/Brussels
- date     2023-08-01
+ date     2023-08-07
  pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -1841,12 +1866,12 @@ div.csl-indent {
  crayon             1.5.2     2022-09-29 [1] CRAN (R 4.3.0)
  data.table         1.14.8    2023-02-17 [1] CRAN (R 4.3.0)
  DBI                1.1.3     2022-06-18 [1] CRAN (R 4.3.0)
- digest             0.6.31    2022-12-11 [1] CRAN (R 4.3.0)
+ digest             0.6.33    2023-07-07 [1] CRAN (R 4.3.0)
  DOSE               3.26.1    2023-05-03 [1] Bioconductor
  downloader         0.4       2015-07-09 [1] CRAN (R 4.3.0)
  dplyr            * 1.1.2     2023-04-20 [1] CRAN (R 4.3.0)
  enrichplot       * 1.20.0    2023-04-25 [1] Bioconductor
- evaluate           0.20      2023-01-17 [1] CRAN (R 4.3.0)
+ evaluate           0.21      2023-05-05 [1] CRAN (R 4.3.0)
  fansi              1.0.4     2023-01-22 [1] CRAN (R 4.3.0)
  farver             2.1.1     2022-07-06 [1] CRAN (R 4.3.0)
  fastmap            1.1.1     2023-02-24 [1] CRAN (R 4.3.0)
@@ -1886,9 +1911,9 @@ div.csl-indent {
  httr               1.4.5     2023-02-24 [1] CRAN (R 4.3.0)
  igraph             1.4.2     2023-04-07 [1] CRAN (R 4.3.0)
  IRanges            2.34.0    2023-04-25 [1] Bioconductor
- jsonlite           1.8.4     2022-12-06 [1] CRAN (R 4.3.0)
+ jsonlite           1.8.7     2023-06-29 [1] CRAN (R 4.3.0)
  KEGGREST           1.40.0    2023-04-25 [1] Bioconductor
- knitr              1.42      2023-01-25 [1] CRAN (R 4.3.0)
+ knitr              1.43      2023-05-25 [1] CRAN (R 4.3.0)
  labeling           0.4.2     2020-10-20 [1] CRAN (R 4.3.0)
  lattice            0.20-45   2021-09-22 [4] CRAN (R 4.2.0)
  lazyeval           0.2.2     2019-03-15 [1] CRAN (R 4.3.0)
@@ -1901,7 +1926,6 @@ div.csl-indent {
  Matrix             1.5-1     2022-09-13 [4] CRAN (R 4.2.1)
  matrixStats        1.0.0     2023-06-02 [1] CRAN (R 4.3.0)
  memoise            2.0.1     2021-11-26 [1] CRAN (R 4.3.0)
- mgcv               1.8-41    2022-10-21 [4] CRAN (R 4.2.1)
  modeltools         0.2-23    2020-03-05 [1] CRAN (R 4.3.0)
  multcomp           1.4-25    2023-06-20 [1] CRAN (R 4.3.0)
  munsell            0.5.0     2018-06-12 [1] CRAN (R 4.3.0)
@@ -1922,7 +1946,7 @@ div.csl-indent {
  readr            * 2.1.4     2023-02-10 [1] CRAN (R 4.3.0)
  reshape2           1.4.4     2020-04-09 [1] CRAN (R 4.3.0)
  rlang              1.1.1     2023-04-28 [1] CRAN (R 4.3.0)
- rmarkdown          2.21      2023-03-26 [1] CRAN (R 4.3.0)
+ rmarkdown          2.23      2023-07-01 [1] CRAN (R 4.3.0)
  rprojroot          2.0.3     2022-04-02 [1] CRAN (R 4.3.0)
  RSQLite            2.3.1     2023-04-03 [1] CRAN (R 4.3.0)
  rstatix          * 0.7.2     2023-02-01 [1] CRAN (R 4.3.0)
@@ -1948,7 +1972,7 @@ div.csl-indent {
  tweenr             2.0.2     2022-09-06 [1] CRAN (R 4.3.0)
  tzdb               0.3.0     2022-03-28 [1] CRAN (R 4.3.0)
  utf8               1.2.3     2023-01-31 [1] CRAN (R 4.3.0)
- vctrs              0.6.2     2023-04-19 [1] CRAN (R 4.3.0)
+ vctrs              0.6.3     2023-06-14 [1] CRAN (R 4.3.0)
  vipor              0.4.5     2017-03-22 [1] CRAN (R 4.3.0)
  viridis            0.6.2     2021-10-13 [1] CRAN (R 4.3.0)
  viridisLite        0.4.2     2023-05-02 [1] CRAN (R 4.3.0)
@@ -2220,13 +2244,13 @@ window.document.addEventListener("DOMContentLoaded", function (event) {
 </script>
 <nav class="page-navigation">
   <div class="nav-page nav-page-previous">
-      <a href="../chapters/02_orthogroup_inference_dbs.html" class="pagination-link">
-        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span>
+      <a href="../chapters/03_orthogroup_inference_dbs.html" class="pagination-link">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Assessing orthogroup inference in public databases</span></span>
       </a>          
   </div>
   <div class="nav-page nav-page-next">
-      <a href="../chapters/04_orthogroup_assessment_orthobench.html" class="pagination-link">
-        <span class="nav-page-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Orthogroup assessment in Orthobench</span></span> <i class="bi bi-arrow-right-short"></i>
+      <a href="../chapters/05_synteny_assessment_fabaceae.html" class="pagination-link">
+        <span class="nav-page-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Assessing synteny detection in Fabaceae</span></span> <i class="bi bi-arrow-right-short"></i>
       </a>
   </div>
 </nav>
