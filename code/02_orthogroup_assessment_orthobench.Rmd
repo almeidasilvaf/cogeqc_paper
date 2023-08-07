@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Text S4: Assessing Orthobench orthogroups"
+title: "Supplementary Text S2: Assessing Orthobench orthogroups"
 shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
@@ -16,7 +16,7 @@ bibliography: bibliography.bib
 output:
   BiocStyle::pdf_document
 vignette: |
-  %\VignetteIndexEntry{Supplementary Text S4: Assessing synteny detection in Fabaceae}
+  %\VignetteIndexEntry{Supplementary Text S2: Assessing Orthobench orthogroups}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

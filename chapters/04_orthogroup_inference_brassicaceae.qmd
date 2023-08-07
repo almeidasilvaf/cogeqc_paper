@@ -1,50 +1,11 @@
 ---
-title: "Supplementary Text S3: Assessing orthogroup inference for Brassicaceae genomes"
-shorttitle: "The cogeqc R/Bioconductor package"
-author:
-  - name: Fabricio Almeida-Silva
-    affiliation: 
-    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
-    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
-  - name: Yves Van de Peer
-    affiliation: 
-    - VIB-UGent Center for Plant Systems Biology, Ghent, Belgium
-    - Department of Plant Biotechnology and Bioinformatics, Ghent University, Ghent, Belgium
-    - College of Horticulture, Academy for Advanced Interdisciplinary Studies, Nanjing Agricultural University, Nanjing, China
-    - Center for Microbial Ecology and Genomics, Department of Biochemistry, Genetics and Microbiology, University of Pretoria, Pretoria, South Africa
-bibliography: bibliography.bib
-output:
-  BiocStyle::pdf_document
-vignette: |
-  %\VignetteIndexEntry{Supplementary Text S3: Assessing orthogroup inference for Brassicaceae genomes}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+execute: 
+  echo: true
+  eval: false
+  warning: false
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-    echo = TRUE,
-    warning = FALSE, 
-    message = FALSE,
-    eval = FALSE
-)
-```
-
-```{r here, warning = FALSE, message = FALSE, eval = TRUE}
-library(here)
-library(cogeqc)
-library(tidyverse)
-library(ggpubr)
-library(rstatix)
-library(clusterProfiler)
-library(enrichplot)
-library(patchwork)
-library(dplyr)
-
-source(here("code", "utils.R"))
-```
-
-# Overview
+# Assessing orthogroup inference for Brassicaceae genomes
 
 Here, we will compare the protein domain-based approach in `cogeqc` to assess 
 the impact of multiple combinations of parameters in OrthoFinder 
@@ -62,7 +23,23 @@ The parameters we will change are:
  - 2
  - 3
 
-# Orthogroup inference
+```{r here}
+#| eval: true
+library(here)
+library(cogeqc)
+library(tidyverse)
+library(ggpubr)
+library(rstatix)
+library(clusterProfiler)
+library(enrichplot)
+library(patchwork)
+library(dplyr)
+
+source(here("code", "utils.R"))
+```
+
+
+## Orthogroup inference
 
 To start, we will load the proteome data and export each proteome
 as a FASTA file in the `data` directory, so we can pass it to OrthoFinder.
@@ -91,7 +68,8 @@ mode for different inflation parameters
 
 The 2 files can be run with:
 
-```{bash eval = FALSE}
+```{bash}
+#| eval: false
 bash of_diamond.sh
 bash of_diamond_ultra.sh
 ```
@@ -166,7 +144,8 @@ og_sizes_plot <- patchwork::wrap_plots(
 og_sizes_plot
 ```
 
-```{r save_og_sizes_plot, echo = FALSE}
+```{r save_og_sizes_plot}
+#| echo: false
 ggsave(
     og_sizes_plot,
     filename = here("products", "plots", "og_sizes_plot.png"),
@@ -174,7 +153,12 @@ ggsave(
 )
 ```
 
-```{r load-fig, echo = FALSE, eval = TRUE, dpi = 200, fig.cap="Orthogroup sizes for each run."}
+```{r load-fig}
+#| echo: false
+#| eval: true
+#| fig-dpi: 200
+#| fig-cap: "Orthogroup sizes for each run."
+
 knitr::include_graphics(here("products", "plots", "og_sizes_plot.png"))
 ```
 
@@ -245,7 +229,9 @@ percentage_plot <- percentages %>%
 percentage_plot
 ```
 
-```{r save_og_size_exploration, echo = FALSE}
+```{r save_og_size_exploration}
+#| echo: false
+
 save(
     percentage_plot,
     file = here("products", "plots", "relationship_og_number_and_size.rda"),
@@ -253,7 +239,12 @@ save(
 )
 ```
 
-```{r show-plot2, echo = FALSE, eval = TRUE, fig.width = 10, fig.height = 5, fig.cap="Percentage of orthogroups with >50, >100, and >200 genes for each run."}
+```{r show-plot2}
+#| echo: false
+#| fig-width: 10
+#| fig-height: 5
+#| fig-cap: "Percentage of orthogroups with >50, >100, and >200 genes for each run."
+
 load(here("products", "plots", "relationship_og_number_and_size.rda"))
 
 percentage_plot
@@ -278,22 +269,30 @@ ogs_filtered <- lapply(seq_along(ogs), function(x) {
 names(ogs_filtered) <- names(ogs)
 ```
 
-```{r save_ogs_filtered, echo = FALSE}
+```{r save_ogs_filtered}
+#| echo: false
+
 save(
     ogs_filtered, compress = "xz",
     file = "~/Documents/intermediate_data/ogs_filtered.rda"
 )
 ```
 
-```{r echo = FALSE, eval = TRUE}
+```{r}
+#| echo: false
+#| eval: true
+
 invisible(gc())
 ```
 
-```{r load_ogs_filtered, echo = FALSE, eval = TRUE}
+```{r load_ogs_filtered}
+#| echo: false
+#| eval: true
+
 load("~/Documents/intermediate_data/ogs_filtered.rda")
 ```
 
-# Orthogroup assessment
+## Orthogroup assessment
 
 Now, let's get InterPro domain annotation for the following species to assess
 orthogroups:
@@ -306,7 +305,9 @@ orthogroups:
 - *C. hirsuta*
 - *S. parvula*
 
-```{r read_annotation, eval = TRUE}
+```{r read_annotation}
+#| eval: true
+
 # Define function to read functional annotation from PLAZA 5.0
 read_annotation <- function(url, cols = c(1, 3)) {
     annot <- readr::read_tsv(url, show_col_types = FALSE, skip = 8) %>%
@@ -357,7 +358,7 @@ save(
 )
 ```
 
-# Comparing and visualizing homogeneity statistics
+## Comparing and visualizing homogeneity statistics
 
 Here, we will compare and visualize how the homogeneity scores are affected by:
 
@@ -367,7 +368,9 @@ Here, we will compare and visualize how the homogeneity scores are affected by:
 
 Quick exploration of median and mean homogeneity:
 
-```{r overall-stats, eval = TRUE}
+```{r overall-stats}
+#| eval: true
+
 load(here("products", "result_files", "og_assessment_brassicaceae.rda"))
 
 # Scale value to the maximum so that values range from 0 to 1
@@ -390,13 +393,15 @@ mean_and_median_og <- inner_join(mean_og, median_og) |>
 knitr::kable(mean_and_median_og, caption = "Mean and median OG scores.", digits = 3)
 ```
 
-## Global distributions
+### Global distributions
 
 Here, we will compare and visualize all distros considering different 
 DIAMOND modes and mcl inflation values. To start, let's perform Wilcoxon tests
 for all combinations of modes and obtain effect sizes.
 
-```{r og-distros-compare, eval = TRUE}
+```{r og-distros-compare}
+#| eval: true
+
 # Relevel 'Mode' factor
 og_assessment$Mode <- factor(
     og_assessment$Mode, 
@@ -430,7 +435,12 @@ Now, let's visualize the distributions and compare the default OrthoFinder
 mode with every other mode, highlighting significant differences
 (*P* < 0.05) with effect size > 0.1.
 
-```{r og-distros-viz, eval = TRUE, fig.width=8, fig.height=6, fig.cap = "Distribution of mean orthogroup scores for each OrthoFinder run."}
+```{r og-distros-viz}
+#| eval: true
+#| fig-width: 8
+#| fig-height: 6
+#| fig-cap: "Distribution of mean orthogroup scores for each OrthoFinder run."
+
 # Visualize
 global_comps <- list(
     c("default_1_5", "ultra_1"),
@@ -461,20 +471,26 @@ p_distros_global <- ggviolin(
 p_distros_global
 ```
 
-```{r save_global_h, echo = FALSE}
+```{r save_global_h}
+#| echo: false
 save(
     p_distros_global, compress = "xz",
     file = here("products", "plots", "p_distros_global.rda")
 )
 ```
 
-## The effect of species choice
+### The effect of species choice
 
 Here, we will compare the distributions of orthogroups scores using each 
 species individually to see if the species choice has an impact 
 on the conclusions.
 
-```{r species-choice, fig.width=12, fig.height=6, eval = TRUE, fig.cap = "Distribution of orthogroup scores for each OrthoFinder run calculated for each species separately."}
+```{r species-choice}
+#| fig-width: 12
+#| fig-height: 6
+#| eval: true
+#| fig-cap: "Distribution of orthogroup scores for each OrthoFinder run calculated for each species separately."
+
 og_species_long <- Reduce(rbind, lapply(2:8, function(x) {
     
     var <- names(og_assessment)[x]
@@ -543,7 +559,8 @@ p_distros_by_species <- ggviolin(
 p_distros_by_species
 ```
 
-```{r echo=FALSE}
+```{r}
+#| echo: false
 save(
     p_distros_by_species, compress = "xz",
     file = here("products", "plots", "p_distros_by_species.rda")
@@ -554,12 +571,14 @@ We conclude that the species choice does not affect the comparisons of
 orthogroup scores among OrthoFinder runs.
 
 
-## The effect of mcl inflation parameters
+### The effect of mcl inflation parameters
 
 Here, we will explore the impact of changing mcl inflation parameters in
 the homogeneity of orthogroups.
 
-```{r og-mcl, eval = TRUE}
+```{r og-mcl}
+#| eval: true
+
 # Process data to include information on DIAMOND mode and mcl
 og_modes <- og_assessment %>%
     mutate(diamond = str_replace_all(Mode, "_.*", "")) %>%
@@ -602,7 +621,13 @@ low P-values could be due to large sample sizes.
 
 Now, let's visualize the distributions.
 
-```{r viz-og-mcl, eval = TRUE, fig.width = 8, fig.height = 5, dpi = 200, fig.cap="Effect of MCL inflation values on orthogroup scores."}
+```{r viz-og-mcl}
+#| eval: true
+#| fig-width: 8
+#| fig-height: 5
+#| fig-dpi: 200
+#| fig-cap: "Effect of MCL inflation values on orthogroup scores."
+
 # List of comparisons to be made
 mcl_comp <- list(
     c("1", "1.5"), c("1", "2"), c("1", "3"), c("1.5", "3")
@@ -637,19 +662,23 @@ p_distros_mcl <- og_assessment %>%
 p_distros_mcl
 ```
 
-```{r save_H_mcl, echo = FALSE}
+```{r save_H_mcl}
+#| echo: false
+
 save(
     p_distros_mcl, compress = "xz",
     file = here("products", "plots", "p_distros_mcl.rda")
 )
 ```
 
-## The effect of DIAMOND mode (default vs ultra)
+### The effect of DIAMOND mode (default vs ultra)
 
 Here, we will investigate whether changing the DIAMOND mode
 (default vs ultrasensitive) in OrthoFinder affects orthogroup homogeneity.
 
-```{r compare-diamond-mode, eval = TRUE}
+```{r compare-diamond-mode}
+#| eval: true
+
 # Compare median scores
 mcl1 <- og_modes %>% 
     filter(mcl == 1) %>%
@@ -690,7 +719,13 @@ without any loss of biological signal for orthogroup inference.
 
 Let's visualize the distributions.
 
-```{r og-diamond, eval = TRUE, fig.width = 8, fig.height = 6, dpi = 200, fig.cap="Effect of DIAMOND mode on orthogroup scores."}
+```{r og-diamond}
+#| eval: true
+#| fig-width: 8
+#| fig-height: 6
+#| fig-dpi: 200
+#| fig-cap: "Effect of DIAMOND mode on orthogroup scores."
+
 # Plot
 p_distros_diamond <- og_modes %>%
     ggviolin(., x = "diamond", y = "Median_score", trim = TRUE,
@@ -712,14 +747,16 @@ p_distros_diamond
 ```
 
 
-```{r save_diamond_H, echo = FALSE}
+```{r save_diamond_H}
+#| echo: false
+
 save(
     p_distros_diamond, compress = "xz",
     file = here("products", "plots", "p_distros_diamond.rda")
 )
 ```
 
-# Functional analysis of homogeneous and heterogeneous gene families
+## Functional analysis of homogeneous and heterogeneous gene families
 
 By looking at the global distributions of homogeneity scores, we can
 see that all distributions have a similar shape. This pattern
@@ -732,7 +769,10 @@ To explore what these groups of families contain, we will perform a functional
 enrichment analysis each group. First of anything, let's plot
 the distribution for the default OrthoFinder mode and highlight the groups.
 
-```{r plot-distros-with-groups, eval = TRUE, fig.cap="Distribution of mean homogeneity scores for orthogroups"}
+```{r plot-distros-with-groups}
+#| eval: true
+#| fig-cap: "Distribution of mean homogeneity scores for orthogroups"
+
 # Plot distro with groups
 p_distros_groups <- og_assessment %>%
     filter(Mode == "default_1_5") %>%
@@ -750,7 +790,9 @@ p_distros_groups <- og_assessment %>%
 p_distros_groups
 ```
 
-```{r echo = FALSE}
+```{r}
+#| echo: false
+
 # Save plot
 save(
     p_distros_groups, compress = "xz",
@@ -761,7 +803,9 @@ save(
 Now, let's get vectors of genes in orthogroups from each of the groups 
 highlighted in the figure above.
 
-```{r echo = FALSE}
+```{r}
+#| echo: false
+
 # Get OGs
 load("~/Documents/intermediate_data/ogs_filtered.rda")
 ```
@@ -813,7 +857,9 @@ g3 <- og_assessment %>%
 
 Next, we need to get functional annotation from PLAZA. 
 
-```{r echo = FALSE}
+```{r}
+#| echo: false
+
 rm(ogs_filtered)
 invisible(gc())
 ```
@@ -983,13 +1029,22 @@ save(
 
 Now, let's plot the results.
 
-```{r echo = FALSE, eval = TRUE}
+```{r}
+#| echo: false
+#| eval: true
+
 load(here("products", "result_files", "g1_summary.rda"))
 load(here("products", "result_files", "g2_summary.rda"))
 load(here("products", "result_files", "g3_summary.rda"))
 ```
 
-```{r plot-treeplot, eval=TRUE, dpi=200, fig.height=9, fig.width=20, fig.cap="Tree plot of functional terms associated with each orthogroup cluster."}
+```{r plot-treeplot}
+#| eval: true
+#| fig-dpi: 200
+#| fig-height: 9
+#| fig-width: 20
+#| fig-cap: "Tree plot of functional terms associated with each orthogroup cluster."
+
 # Tree plot
 p_tree_g1 <- treeplot(g1_summary, nWords = 0) +
     ggsci::scale_fill_jama() +
@@ -1036,7 +1091,9 @@ wrap_plots(p_tree_g1, p_tree_g2, p_tree_g3) +
     theme(legend.position = "bottom")
 ```
 
-```{r echo = FALSE}
+```{r}
+#| echo: false
+
 # Save treeplot
 p_treeplot <- wrap_plots(p_tree_g1, p_tree_g2, p_tree_g3) +
     plot_layout(guides = "collect") &
@@ -1051,7 +1108,13 @@ save(
 )
 ```
 
-```{r plot-dotplot, fig.height=10, fig.width=18, eval = TRUE,dpi=200, fig.cap="Dotplot of functional terms associated with each orthogroup cluster."}
+```{r plot-dotplot}
+#| fig-height: 10
+#| fig-width: 18
+#| eval: true
+#| fig-dpi: 200
+#| fig-cap: "Dotplot of functional terms associated with each orthogroup cluster."
+
 # Dot plot
 p_dot_g1 <- dotplot(g1_summary, showCategory = 20) + ggtitle("Group 1")
 p_dot_g2 <- dotplot(g2_summary, showCategory = 20) + ggtitle("Group 2")
@@ -1101,8 +1164,8 @@ development, exocytosis, and calcium and sulfate transport.
 endocytosis, cell-cell junction assembly, and toxin catabolism.
 
 
+## Is there an association between OG score and OG gene length?
 
-# Is there an association between OG score and OG gene length?
 
 @emms2015orthofinder have demonstrated a gene length bias that
 influences the accuracy of orthogroup detection. This is because
@@ -1173,38 +1236,67 @@ save(
 )
 ```
 
-```{r eval = TRUE, echo = FALSE}
+```{r}
+#| eval: true
+#| echo: false
+
 load(here("products", "result_files", "og_length_and_scores.rda"))
 ```
 
-Now, let's plot the data.
+Next, let's explore a potential association between the two variables. Here,
+since the distribution of homogeneity scores is highly right-skewed, we will
+perform a correlation test using Spearman's $\rho$ as a measure of association.
 
-```{r plot-og-length-h, eval = TRUE, fig.width = 8, fig.height = 5, fig.cap="Relationship between sequence length and orthogroup scores."}
+```{r}
+#| eval: true
+
+ogl <- og_length_and_scores$median_length
+ogs <- og_length_and_scores$Median_H
+
+# Calculate Spearman's correlation coefficient
+cor_spearman <- cor.test(ogl, ogs, method = "spearman", exact = FALSE)
+cor_spearman
+```
+
+Finally, let's plot the data and add the test statistics.
+
+```{r plot-og-length-h}
+#| eval: true
+#| fig-width: 8
+#| fig-height: 5
+#| fig-cap: "Relationship between sequence length and orthogroup scores."
+
 p_association_length_homogeneity <- og_length_and_scores %>%
     mutate(
-        logH = log10(Median_H),
-        logLength = log10(median_length)
+        logH = log10(Median_H + 1),
+        logLength = log10(median_length + 1)
     ) %>%
     ggscatter(
         ., x = "logLength", y = "logH", alpha = 0.3,
-        color = "black", size = 1,
-        add = "reg.line", add.params = list(color = "blue", fill = "lightgray"),
-        conf.int = TRUE, 
-        cor.coef = TRUE, 
-        cor.coeff.args = list(
-            method = "spearman", label.x = 1.7, label.y = -1, label.sep = "\n"
-        )
+        color = "black", size = 1
+    ) +
+    annotate(
+        "text",
+        x = 1.7, y = 0.05, 
+        label = paste("rho", "==", signif(cor_spearman$estimate, 2)),
+        parse = TRUE
+    ) +
+    annotate(
+        "text",
+        x = 1.71, y = 0.03,
+        label = paste("P", "<", 2.2e-16), parse = TRUE
     ) +
     labs(
-        title = "Relationship between OG homogeneity score and gene length",
-        x = expression(Log[10]~"median gene length"),
-        y = expression(Log[10]~"median homogeneity score")
+        title = "Relationship between OG score and gene length",
+        x = expression(Log[10] ~ "median gene length"),
+        y = expression(Log[10] ~ "median homogeneity score")
     )
 
 p_association_length_homogeneity
 ```
 
-```{r echo = FALSE}
+```{r}
+#| echo: false
 save(
     p_association_length_homogeneity,
     file = here("products", "plots", "p_association_length_homogeneity.rda"),
@@ -1212,17 +1304,20 @@ save(
 )
 ```
 
-There is a significant, negative association between homogeneity and OG gene
-length, but the strength of association is small ($R^2 = -0.2$).
+The data and correlation test show that there is a significant negative 
+correlation between homogeneity and OG gene length, but the correlation 
+is weak ($\rho = -0.19$).
 Although weak, this negative relationship shows that OrthoFinder can
 reduce the gene length bias, but not completely. 
 
-# Session info {.unnumbered}
+## Session info {.unnumbered}
 
 This document was created under the following conditions:
 
-```{r sessioninfo, eval = TRUE}
+```{r sessioninfo}
+#| eval: true
+#| echo: false
 sessioninfo::session_info()
 ```
 
-# References {.unnumbered}
+## References {.unnumbered}

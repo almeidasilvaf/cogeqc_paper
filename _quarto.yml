@@ -11,9 +11,9 @@ book:
   chapters:
     - index.qmd
     - chapters/01_busco_assessment.qmd
-    - chapters/02_orthogroup_inference_dbs.qmd
-    - chapters/03_orthogroup_inference_brassicaceae.qmd
-    - chapters/04_orthogroup_assessment_orthobench.qmd
+    - chapters/02_orthogroup_assessment_orthobench.qmd
+    - chapters/03_orthogroup_inference_dbs.qmd
+    - chapters/04_orthogroup_inference_brassicaceae.qmd
     - chapters/05_synteny_assessment_fabaceae.qmd
     - chapters/appendices.qmd
 

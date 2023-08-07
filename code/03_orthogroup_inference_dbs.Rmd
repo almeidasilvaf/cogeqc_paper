@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Text S2: Assessing orthogroup inference in public databases"
+title: "Supplementary Text S3: Assessing orthogroup inference in public databases"
 shorttitle: "The cogeqc R/Bioconductor package"
 author:
   - name: Fabricio Almeida-Silva
@@ -16,7 +16,7 @@ bibliography: bibliography.bib
 output:
   BiocStyle::pdf_document
 vignette: |
-  %\VignetteIndexEntry{Supplementary Text S2: Assessing orthogroup inference in public databases}
+  %\VignetteIndexEntry{Supplementary Text S3: Assessing orthogroup inference in public databases}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
