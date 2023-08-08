@@ -1744,68 +1744,165 @@ div.csl-indent {
 <span id="cb26-38"><a href="#cb26-38" aria-hidden="true" tabindex="-1"></a>        <span class="at">median_length =</span> <span class="fu">median</span>(Length)</span>
 <span id="cb26-39"><a href="#cb26-39" aria-hidden="true" tabindex="-1"></a>    )</span>
 <span id="cb26-40"><a href="#cb26-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Add homogeneity scores to data frame of mean gene length per orthogroup</span></span>
-<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a>og_length_and_scores <span class="ot">&lt;-</span> og_assessment <span class="sc">%&gt;%</span></span>
-<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(Mode <span class="sc">==</span> <span class="st">"default_1_5"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(Orthogroups, Mean_H, Median_H) <span class="sc">%&gt;%</span></span>
-<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(., og_gene_lengths, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Orthogroups"</span> <span class="ot">=</span> <span class="st">"Orthogroup"</span>))</span>
-<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb26-47"><a href="#cb26-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Save data</span></span>
-<span id="cb26-48"><a href="#cb26-48" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
-<span id="cb26-49"><a href="#cb26-49" aria-hidden="true" tabindex="-1"></a>    og_length_and_scores,</span>
-<span id="cb26-50"><a href="#cb26-50" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"og_length_and_scores.rda"</span>),</span>
-<span id="cb26-51"><a href="#cb26-51" aria-hidden="true" tabindex="-1"></a>    <span class="at">compress =</span> <span class="st">"xz"</span></span>
-<span id="cb26-52"><a href="#cb26-52" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb26-41"><a href="#cb26-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb26-42"><a href="#cb26-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Add homogeneity scores to data frame of mean gene length per orthogroup</span></span>
+<span id="cb26-43"><a href="#cb26-43" aria-hidden="true" tabindex="-1"></a>og_length_and_scores <span class="ot">&lt;-</span> og_assessment <span class="sc">%&gt;%</span></span>
+<span id="cb26-44"><a href="#cb26-44" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">filter</span>(Mode <span class="sc">==</span> <span class="st">"default_1_5"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb26-45"><a href="#cb26-45" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">select</span>(Orthogroups, Mean_H, Median_H) <span class="sc">%&gt;%</span></span>
+<span id="cb26-46"><a href="#cb26-46" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(., og_gene_lengths, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Orthogroups"</span> <span class="ot">=</span> <span class="st">"Orthogroup"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Next, let’s explore a potential association between the two variables. Here, since the distribution of homogeneity scores is highly right-skewed, we will perform a correlation test using Spearman’s <span class="math inline">\(\rho\)</span> as a measure of association.</p>
+<p>Now, since the number of domains in a protein correlates with its length, let’s also calculate the median number of domains in an orthogroup.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>ogl <span class="ot">&lt;-</span> og_length_and_scores<span class="sc">$</span>median_length</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>ogs <span class="ot">&lt;-</span> og_length_and_scores<span class="sc">$</span>Median_H</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate Spearman's correlation coefficient</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>cor_spearman <span class="ot">&lt;-</span> <span class="fu">cor.test</span>(ogl, ogs, <span class="at">method =</span> <span class="st">"spearman"</span>, <span class="at">exact =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>cor_spearman</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate median number of domains for each orthogroup</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>og_domain_count <span class="ot">&lt;-</span> <span class="fu">Reduce</span>(rbind, interpro) <span class="sc">|&gt;</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>    dplyr<span class="sc">::</span><span class="fu">count</span>(Gene) <span class="sc">|&gt;</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">inner_join</span>(og, <span class="at">by =</span> <span class="st">"Gene"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">group_by</span>(Orthogroup) <span class="sc">|&gt;</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summarise</span>(</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        <span class="at">median_ndomains =</span> <span class="fu">median</span>(n)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>og_length_and_scores <span class="ot">&lt;-</span> <span class="fu">left_join</span>(</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>    og_length_and_scores, og_domain_count, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"Orthogroups"</span> <span class="ot">=</span> <span class="st">"Orthogroup"</span>)</span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Save data</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="fu">save</span>(</span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>    og_length_and_scores,</span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"products"</span>, <span class="st">"result_files"</span>, <span class="st">"og_length_and_scores.rda"</span>),</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">compress =</span> <span class="st">"xz"</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Next, we will investigate if the number of domains can be a confounder in associations between the orthogroup score and gene length.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Explore associations between the number of domains and gene length</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>p_length_domains <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>    og_length_and_scores, </span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">aes</span>(<span class="at">y =</span> <span class="fu">log2</span>(median_ndomains <span class="sc">+</span> <span class="dv">1</span>), <span class="at">x =</span> <span class="fu">log2</span>(median_length <span class="sc">+</span> <span class="dv">1</span>))</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>) <span class="sc">+</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>    <span class="fu">theme_bw</span>() <span class="sc">+</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Number of domains and gene length"</span>,</span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">expression</span>(Log[<span class="dv">2</span>] <span class="sc">~</span> <span class="st">"median gene length"</span>),</span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">expression</span>(Log[<span class="dv">2</span>] <span class="sc">~</span> <span class="st">"median number of domains"</span>)</span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>cor_length_domains <span class="ot">&lt;-</span> <span class="fu">cor.test</span>(</span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>median_length <span class="sc">+</span> <span class="dv">1</span>), </span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>median_ndomains <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb28-17"><a href="#cb28-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"spearman"</span>,</span>
+<span id="cb28-18"><a href="#cb28-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">exact =</span> <span class="cn">FALSE</span></span>
+<span id="cb28-19"><a href="#cb28-19" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb28-20"><a href="#cb28-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-21"><a href="#cb28-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Show plot and correlation test statistics</span></span>
+<span id="cb28-22"><a href="#cb28-22" aria-hidden="true" tabindex="-1"></a>p_length_domains</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="04_orthogroup_inference_brassicaceae_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>cor_length_domains</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     Spearman's rank correlation rho
 
-data:  ogl and ogs
-S = 9.7041e+11, p-value &lt; 2.2e-16
+data:  log2(og_length_and_scores$median_length + 1) and log2(og_length_and_scores$median_ndomains + 1)
+S = 4.7564e+11, p-value &lt; 2.2e-16
 alternative hypothesis: true rho is not equal to 0
 sample estimates:
       rho 
--0.190358 </code></pre>
+0.4165488 </code></pre>
 </div>
 </div>
+<p>The figure and test above show that there is indeed a moderate correlation (<span class="math inline">\(\rho \approx 0.4, P &lt;0.001\)</span>) between gene length and number of domains. Because of that, we will use partial Spearman’s correlation to measure the association between orthogroup scores and gene length while controlling for the number of domains.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate partial Spearman's correlations</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="do">## Without accounting for the number of domains</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>cor1 <span class="ot">&lt;-</span> ppcor<span class="sc">::</span><span class="fu">pcor</span>(</span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">data.frame</span>(</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>        <span class="at">Length =</span> <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>median_length <span class="sc">+</span> <span class="dv">1</span>), </span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>        <span class="at">Score =</span> <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>Median_H <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb31-7"><a href="#cb31-7" aria-hidden="true" tabindex="-1"></a>    ),</span>
+<span id="cb31-8"><a href="#cb31-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"spearman"</span></span>
+<span id="cb31-9"><a href="#cb31-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb31-10"><a href="#cb31-10" aria-hidden="true" tabindex="-1"></a>cor1</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$estimate
+           Length      Score
+Length  1.0000000 -0.1903208
+Score  -0.1903208  1.0000000
+
+$p.value
+              Length         Score
+Length  0.000000e+00 3.370622e-138
+Score  3.370622e-138  0.000000e+00
+
+$statistic
+          Length     Score
+Length   0.00000 -25.25673
+Score  -25.25673   0.00000
+
+$n
+[1] 16975
+
+$gp
+[1] 0
+
+$method
+[1] "spearman"</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="do">## Accounting for the number of domains</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>cor2 <span class="ot">&lt;-</span> ppcor<span class="sc">::</span><span class="fu">pcor.test</span>(</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>median_length <span class="sc">+</span> <span class="dv">1</span>), </span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>Median_H <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">log2</span>(og_length_and_scores<span class="sc">$</span>median_ndomains <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">method =</span> <span class="st">"spearman"</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>cor2</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    estimate      p.value statistic     n gp   Method
+1 0.08593287 3.417431e-29  11.23661 16975  1 spearman</code></pre>
+</div>
+</div>
+<p>The tests show a weak correlation between orthogroup scores and gene length. When the number of domains is included as a covariate, we find no correlation at all, indicating that OrthoFinder’s normalization score is effective.</p>
 <p>Finally, let’s plot the data and add the test statistics.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity <span class="ot">&lt;-</span> og_length_and_scores <span class="sc">%&gt;%</span></span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">logH =</span> <span class="fu">log10</span>(Median_H <span class="sc">+</span> <span class="dv">1</span>),</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">logLength =</span> <span class="fu">log10</span>(median_length <span class="sc">+</span> <span class="dv">1</span>)</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggscatter</span>(</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>        ., <span class="at">x =</span> <span class="st">"logLength"</span>, <span class="at">y =</span> <span class="st">"logH"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>,</span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">1</span></span>
-<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
-<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
-<span id="cb29-12"><a href="#cb29-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.7</span>, <span class="at">y =</span> <span class="fl">0.05</span>, </span>
-<span id="cb29-13"><a href="#cb29-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"rho"</span>, <span class="st">"=="</span>, <span class="fu">signif</span>(cor_spearman<span class="sc">$</span>estimate, <span class="dv">2</span>)),</span>
-<span id="cb29-14"><a href="#cb29-14" aria-hidden="true" tabindex="-1"></a>        <span class="at">parse =</span> <span class="cn">TRUE</span></span>
-<span id="cb29-15"><a href="#cb29-15" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb29-16"><a href="#cb29-16" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
-<span id="cb29-17"><a href="#cb29-17" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
-<span id="cb29-18"><a href="#cb29-18" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.71</span>, <span class="at">y =</span> <span class="fl">0.03</span>,</span>
-<span id="cb29-19"><a href="#cb29-19" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"P"</span>, <span class="st">"&lt;"</span>, <span class="fl">2.2e-16</span>), <span class="at">parse =</span> <span class="cn">TRUE</span></span>
-<span id="cb29-20"><a href="#cb29-20" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
-<span id="cb29-21"><a href="#cb29-21" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
-<span id="cb29-22"><a href="#cb29-22" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Relationship between OG score and gene length"</span>,</span>
-<span id="cb29-23"><a href="#cb29-23" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median gene length"</span>),</span>
-<span id="cb29-24"><a href="#cb29-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median homogeneity score"</span>)</span>
-<span id="cb29-25"><a href="#cb29-25" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb29-26"><a href="#cb29-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-27"><a href="#cb29-27" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity <span class="ot">&lt;-</span> og_length_and_scores <span class="sc">%&gt;%</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>    <span class="fu">mutate</span>(</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>        <span class="at">logH =</span> <span class="fu">log10</span>(Median_H <span class="sc">+</span> <span class="dv">1</span>),</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>        <span class="at">logLength =</span> <span class="fu">log10</span>(median_length <span class="sc">+</span> <span class="dv">1</span>)</span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">%&gt;%</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">ggscatter</span>(</span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>        ., <span class="at">x =</span> <span class="st">"logLength"</span>, <span class="at">y =</span> <span class="st">"logH"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>,</span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>        <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">1</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.71</span>, <span class="at">y =</span> <span class="fl">0.055</span>, </span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>            <span class="st">"rho"</span>, <span class="st">"=="</span>, <span class="fu">signif</span>(cor1<span class="sc">$</span>estimate[<span class="dv">1</span>, <span class="dv">2</span>], <span class="dv">2</span>)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>        <span class="at">parse =</span> <span class="cn">TRUE</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.71</span>, <span class="at">y =</span> <span class="fl">0.035</span>, </span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(</span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>            <span class="st">"rho[partial]"</span>, <span class="st">"=="</span>, <span class="fu">signif</span>(cor2<span class="sc">$</span>estimate, <span class="dv">2</span>)</span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>        ),</span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a>        <span class="at">parse =</span> <span class="cn">TRUE</span></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a>    <span class="fu">annotate</span>(</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">"text"</span>,</span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fl">1.71</span>, <span class="at">y =</span> <span class="fl">0.015</span>,</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>        <span class="at">label =</span> <span class="fu">paste</span>(<span class="st">"P"</span>, <span class="st">"&lt;"</span>, <span class="fl">2.2e-16</span>), <span class="at">parse =</span> <span class="cn">TRUE</span></span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a>    ) <span class="sc">+</span></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    <span class="fu">labs</span>(</span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>        <span class="at">title =</span> <span class="st">"Relationship between OG score and gene length"</span>,</span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>        <span class="at">x =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median gene length"</span>),</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a>        <span class="at">y =</span> <span class="fu">expression</span>(Log[<span class="dv">10</span>] <span class="sc">~</span> <span class="st">"median homogeneity score"</span>)</span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a>p_association_length_homogeneity</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure class="figure">
@@ -1815,7 +1912,6 @@ sample estimates:
 </div>
 </div>
 </div>
-<p>The data and correlation test show that there is a significant negative correlation between homogeneity and OG gene length, but the correlation is weak (<span class="math inline">\(\rho = -0.19\)</span>). Although weak, this negative relationship shows that OrthoFinder can reduce the gene length bias, but not completely.</p>
 </section>
 <section id="session-info" class="level2 unnumbered">
 <h2 class="unnumbered anchored" data-anchor-id="session-info">Session info</h2>
@@ -1832,7 +1928,7 @@ sample estimates:
  collate  en_US.UTF-8
  ctype    en_US.UTF-8
  tz       Europe/Brussels
- date     2023-08-07
+ date     2023-08-08
  pandoc   3.1.1 @ /usr/lib/rstudio/resources/app/bin/quarto/bin/tools/ (via rmarkdown)
 
 ─ Packages ───────────────────────────────────────────────────────────────────
@@ -1937,6 +2033,7 @@ sample estimates:
  plyr               1.8.8     2022-11-11 [1] CRAN (R 4.3.0)
  png                0.1-8     2022-11-29 [1] CRAN (R 4.3.0)
  polyclip           1.10-4    2022-10-20 [1] CRAN (R 4.3.0)
+ ppcor              1.1       2015-12-03 [1] CRAN (R 4.3.0)
  purrr            * 1.0.1     2023-01-10 [1] CRAN (R 4.3.0)
  qvalue             2.32.0    2023-04-25 [1] Bioconductor
  R6                 2.5.1     2021-08-19 [1] CRAN (R 4.3.0)
