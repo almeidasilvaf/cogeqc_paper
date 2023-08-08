@@ -1164,7 +1164,25 @@ og_length_and_scores <- og_assessment %>%
     dplyr::filter(Mode == "default_1_5") %>%
     dplyr::select(Orthogroups, Mean_H, Median_H) %>%
     inner_join(., og_gene_lengths, by = c("Orthogroups" = "Orthogroup"))
-    
+```
+
+Now, since the number of domains in a protein correlates with its length,
+let's also calculate the median number of domains in an orthogroup. 
+
+```{r}
+# Calculate median number of domains for each orthogroup
+og_domain_count <- Reduce(rbind, interpro) |>
+    dplyr::count(Gene) |>
+    inner_join(og, by = "Gene") |>
+    group_by(Orthogroup) |>
+    summarise(
+        median_ndomains = median(n)
+    )
+
+og_length_and_scores <- left_join(
+    og_length_and_scores, og_domain_count, by = c("Orthogroups" = "Orthogroup")
+)
+
 # Save data
 save(
     og_length_and_scores,
@@ -1177,22 +1195,74 @@ save(
 load(here("products", "result_files", "og_length_and_scores.rda"))
 ```
 
-Next, let's explore a potential association between the two variables. Here,
-since the distribution of homogeneity scores is highly right-skewed, we will
-perform a correlation test using Spearman's $\rho$ as a measure of association.
+
+Next, we will investigate if the number of domains can be a confounder in
+associations between the orthogroup score and gene length.
 
 ```{r eval = TRUE}
-ogl <- og_length_and_scores$median_length
-ogs <- og_length_and_scores$Median_H
 
-# Calculate Spearman's correlation coefficient
-cor_spearman <- cor.test(ogl, ogs, method = "spearman", exact = FALSE)
-cor_spearman
+# Explore associations between the number of domains and gene length
+p_length_domains <- ggplot(
+    og_length_and_scores, 
+    aes(y = log2(median_ndomains + 1), x = log2(median_length + 1))
+) +
+    geom_point(alpha = 0.3) +
+    theme_bw() +
+    labs(
+        title = "Number of domains and gene length",
+        x = expression(Log[2] ~ "median gene length"),
+        y = expression(Log[2] ~ "median number of domains")
+    )
+
+cor_length_domains <- cor.test(
+    log2(og_length_and_scores$median_length + 1), 
+    log2(og_length_and_scores$median_ndomains + 1),
+    method = "spearman",
+    exact = FALSE
+)
+
+# Show plot and correlation test statistics
+p_length_domains
+cor_length_domains
 ```
+
+The figure and test above show that there is indeed a moderate 
+correlation ($\rho \approx 0.4, P <0.001$) between gene length and 
+number of domains. Because of that, we will use partial Spearman's correlation 
+to measure the association between orthogroup scores and gene length while 
+controlling for the number of domains.
+
+```{r eval=TRUE}
+
+# Calculate partial Spearman's correlations
+## Without accounting for the number of domains
+cor1 <- ppcor::pcor(
+    data.frame(
+        Length = log2(og_length_and_scores$median_length + 1), 
+        Score = log2(og_length_and_scores$Median_H + 1)
+    ),
+    method = "spearman"
+)
+cor1
+
+## Accounting for the number of domains
+cor2 <- ppcor::pcor.test(
+    log2(og_length_and_scores$median_length + 1), 
+    log2(og_length_and_scores$Median_H + 1),
+    log2(og_length_and_scores$median_ndomains + 1),
+    method = "spearman"
+)
+cor2
+```
+
+The tests show a weak correlation between orthogroup scores and gene length.
+When the number of domains is included as a covariate, we find no correlation
+at all, indicating that OrthoFinder's normalization score is effective.
 
 Finally, let's plot the data and add the test statistics.
 
-```{r plot-og-length-h, eval = TRUE, fig.width = 8, fig.height = 5, fig.cap="Relationship between sequence length and orthogroup scores."}
+```{r plot-og-length-h, eval=TRUE, fig.width=8, fig.height=5, fig.cap="Relationship between sequence length and orthogroup scores."}
+
 p_association_length_homogeneity <- og_length_and_scores %>%
     mutate(
         logH = log10(Median_H + 1),
@@ -1204,13 +1274,23 @@ p_association_length_homogeneity <- og_length_and_scores %>%
     ) +
     annotate(
         "text",
-        x = 1.7, y = 0.05, 
-        label = paste("rho", "==", signif(cor_spearman$estimate, 2)),
+        x = 1.71, y = 0.055, 
+        label = paste(
+            "rho", "==", signif(cor1$estimate[1, 2], 2)
+        ),
         parse = TRUE
     ) +
     annotate(
         "text",
-        x = 1.71, y = 0.03,
+        x = 1.71, y = 0.035, 
+        label = paste(
+            "rho[partial]", "==", signif(cor2$estimate, 2)
+        ),
+        parse = TRUE
+    ) +
+    annotate(
+        "text",
+        x = 1.71, y = 0.015,
         label = paste("P", "<", 2.2e-16), parse = TRUE
     ) +
     labs(
@@ -1222,19 +1302,13 @@ p_association_length_homogeneity <- og_length_and_scores %>%
 p_association_length_homogeneity
 ```
 
-```{r echo = FALSE}
+```{r echo=FALSE}
 save(
     p_association_length_homogeneity,
     file = here("products", "plots", "p_association_length_homogeneity.rda"),
     compress = "xz"
 )
 ```
-
-The data and correlation test show that there is a significant negative 
-correlation between homogeneity and OG gene length, but the correlation 
-is weak ($\rho = -0.19$).
-Although weak, this negative relationship shows that OrthoFinder can
-reduce the gene length bias, but not completely. 
 
 # Session info {.unnumbered}
 
