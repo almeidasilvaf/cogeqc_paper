@@ -14,7 +14,8 @@ book:
     - chapters/02_orthogroup_assessment_orthobench.qmd
     - chapters/03_orthogroup_inference_dbs.qmd
     - chapters/04_orthogroup_inference_brassicaceae.qmd
-    - chapters/05_synteny_assessment_fabaceae.qmd
+    - chapters/05_on_overclustering_correction.qmd
+    - chapters/06_synteny_assessment_fabaceae.qmd
     - chapters/appendices.qmd
 
 bibliography: bibliography.bib

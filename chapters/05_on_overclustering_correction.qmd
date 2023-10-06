@@ -1,0 +1,268 @@
+---
+execute: 
+  echo: true
+  eval: false
+  warning: false
+---
+
+# On overclustering correction
+
+Here, we will verify whether the *dispersal* term of the orthogroup scores
+really penalizes overclustering. For that, we ran OrthoFinder
+[@emms2019orthofinder] one more time using the previously described 
+Brassicaceae data set, but now with an Markov inflation parameter (*mcl*)
+of 5. An *mcl* of 5 is usually considered too large, so we would expect
+orthogroup scores to be lower than, for instance, runs with *mcl* = 3. 
+Our goal here is to verify if our hypothesis is true.
+
+
+Loading required packages:
+
+```{r here}
+#| eval: true
+
+set.seed(123) # for reproducibility
+
+library(here)
+library(cogeqc)
+library(ggpubr)
+library(rstatix)
+library(patchwork)
+library(tidyverse)
+
+source(here("code", "utils.R"))
+```
+
+
+## Data acquisition
+
+We ran OrthoFinder with the following code:
+
+```{bash}
+#| eval: false
+
+# Run OrthoFinder - default DIAMOND mode, mcl = 5
+orthofinder -f data -S diamond -I 5 -o products/result_files/default_5 -og
+```
+
+Now, we will load our data to the R session as a list of __cogeqc__-friendly
+orthogroup data frames.
+
+```{r}
+# Extract tar.xz file
+tarfile <- here("products", "result_files", "Orthogroups.tar.xz")
+outdir <- tempdir()
+
+system2("tar", args = c("-xf", tarfile, "--directory", outdir))
+
+# Get path to OrthoFinder output
+og_files <- list.files(
+    path = outdir, 
+    pattern = "Orthogroups.*", full.names = TRUE
+)
+
+# Remove files for the ultrasensitive DIAMOND mode and add mcl=5
+og_files <- c(
+    og_files[c(2, 1, 3, 4)],
+    here("products", "result_files", "Orthogroups_default_5.tsv.gz")
+)
+
+# Read and parse files
+ogs <- lapply(og_files, function(x) {
+    og <- read_orthogroups(x)
+    og <- og %>%
+        mutate(Species = stringr::str_replace_all(Species, "\\.", "")) %>%
+        mutate(Gene = str_replace_all(
+            Gene, c(
+                "\\.[0-9]$" = "",
+                "\\.[0-9]\\.p$" = "",
+                "\\.t[0-9]$" = "",
+                "\\.g$" = ""
+            )
+        ))
+    return(og)
+})
+names(ogs) <- c("1", "1.5", "2", "3", "5")
+```
+
+Next, we will load InterPro annotation from PLAZA 5.0 [@van2022plaza].
+
+```{r}
+# Define function to read functional annotation from PLAZA 5.0
+read_annotation <- function(url, cols = c(1, 3)) {
+    annot <- readr::read_tsv(url, show_col_types = FALSE, skip = 8) %>%
+        select(cols)
+    names(annot)[1:2] <- c("Gene", "Annotation")
+    return(annot)
+}
+
+# Get Interpro annotation
+base <- "https://ftp.psb.ugent.be/pub/plaza/plaza_public_dicots_05/InterPro/"
+interpro <- list(
+    Athaliana = read_annotation(paste0(base, "interpro.ath.csv.gz")),     
+    Aarabicum = read_annotation(paste0(base, "interpro.aar.csv.gz")),
+    Alyrata_cvMN47 = read_annotation(paste0(base, "interpro.aly.csv.gz")),
+    Bcarinata_cvzd1 = read_annotation(paste0(base, "interpro.bca.csv.gz")),
+    Crubella_cvMonteGargano = read_annotation(paste0(base, "interpro.cru.csv.gz")),
+    Chirsuta = read_annotation(paste0(base, "interpro.chi.csv.gz")),
+    Sparvula = read_annotation(paste0(base, "interpro.spa.csv.gz"))
+)
+
+interpro <- lapply(interpro, as.data.frame)
+```
+
+## Validating the overclustering correction
+
+Now that we have all data we need (orthogroup data frames and domain 
+annotations), let's calculate orthogroup scores. Here, we will use the function
+`calculate_H_with_terms()` from the file *utils.R*, which contains a slightly
+modified version of the function `calculate_H()` from __cogeqc__, but instead
+of updating the uncorrected scores with the corrected scores, it returns the
+dispersal terms and corrected scores and separate variables.
+
+```{r}
+# Calculate orthogroup scores with and without correction for overclustering
+og_homogeneity <- Reduce(rbind, lapply(seq_along(ogs), function(x) {
+    
+    mode <- names(ogs)[x]
+    annotation <- Reduce(rbind, interpro) |> distinct()
+    
+    message("Working on ", mode)
+    
+    orthogroup_df <- merge(
+        ogs[[x]], 
+        annotation,
+        all.x = TRUE
+    )
+    
+    scores_df <- calculate_H_with_terms(
+        orthogroup_df, correct_overclustering = TRUE, update_score = FALSE
+    )
+    scores_df$Mode <- mode
+    
+    return(scores_df)
+}))
+
+og_homogeneity$Mode <- factor(
+    og_homogeneity$Mode, levels = unique(og_homogeneity$Mode)
+)
+```
+
+```{r}
+#| echo: false
+#| eval: false
+save(
+    og_homogeneity, compress = "xz",
+    file = here("products", "result_files", "og_homogeneity.rda")
+)
+```
+
+```{r}
+#| echo: false
+#| eval: true
+load(here("products", "result_files", "og_homogeneity.rda"))
+```
+
+
+Next, let's visualize orthogroup scores with and without corrections, as well
+as look at the dispersal terms for each mode.
+
+```{r}
+#| eval: true
+
+# Plot scores
+p_scores <- og_homogeneity |>
+    mutate(
+        Score = (Score - min(Score) / (max(Score) - min(Score))),
+        Score_c = (Score_c - min(Score_c) / (max(Score_c) - min(Score_c)))
+    ) |>
+    dplyr::select(Orthogroup, Score, `Corrected Score` = Score_c, Mode) |>
+    pivot_longer(
+        !c("Orthogroup", "Mode"),
+        names_to = "Measure",
+        values_to = "Score"
+    ) |>
+    mutate(
+        Measure = factor(Measure, levels = c("Score", "Corrected Score"))
+    ) |>
+    ggpubr::ggviolin(
+        x = "Mode", y = "Score", 
+        orientation = "horiz",
+        fill = "Mode", 
+        palette = rev(c("#006D2C", "#31A354", "#74C476", "#BAE4B3", "#c7f2bf")),
+        add = "boxplot", add.params = list(fill = "white")
+    ) +
+    labs(
+        x = "mcl inflation", y = "Scaled score",
+        title = "Orthogroup scores with and without correction",
+        subtitle = "Default DIAMOND mode"
+    ) +
+    facet_wrap(~Measure, scales = "free_x", nrow = 1) +
+    theme(legend.position = "none")
+
+# Plot dispersal terms
+p_dispersal <- og_homogeneity |>
+    dplyr::select(Mode, Dispersal) |>
+    mutate(Dispersal = Dispersal * 100) |>
+    dplyr::distinct() |>
+    ggpubr::ggbarplot(
+        x = "Mode", y = "Dispersal", stat = "identity", 
+        orientation = "horiz",
+        fill = "Mode", 
+        palette = rev(c("#006D2C", "#31A354", "#74C476", "#BAE4B3", "#c7f2bf")),
+    ) +
+    labs(
+        x = "", y = "Dispersal (%)",
+        title = "Dispersal terms",
+        subtitle = "Default DIAMOND mode"
+    ) +
+    theme(
+        legend.position = "none",
+        axis.text.y = element_blank()
+    )
+
+# Combine plots
+p_combined <- patchwork::wrap_plots(p_scores, p_dispersal, widths = c(2.5, 1))
+
+p_combined
+```
+
+We can see that, without correction (homogeneity only), 
+increasing the value for the *mcl* parameter leads to increasingly larger 
+scores. However, as homogeneity increases, the dispersal also increases.
+After correcting for dispersal, larger values for the *mcl* parameter do not
+lead to higher orthogroup scores.
+
+To verify that formally, let's perform a Mann-Whitney U test for differences
+in orthogroup scores for runs with mcl of 3 and 5 with and without correcting
+for dispersal.
+
+```{r}
+#| eval: true
+
+# Without dispersal
+compare(og_homogeneity, "Score ~ Mode") |>
+    filter(group1 == "3" & group2 == "5")
+
+# With dispersal
+compare(og_homogeneity, "Score_c ~ Mode") |>
+    filter(group1 == "3" & group2 == "5")
+```
+
+
+As expected, without correcting for dispersal, using *mcl* = 5 leads to better
+orthogroup scores than using *mcl* = 3. However, after correction, orthogroup
+scores for *mcl* = 5 are worse than scores for *mcl* = 3, which is desired.
+
+
+## Session info {.unnumbered}
+
+This document was created under the following conditions:
+
+```{r sessioninfo}
+#| eval: true
+#| echo: false
+sessioninfo::session_info()
+```
+
+## References {.unnumbered}

@@ -109,3 +109,83 @@ filter_comparison <- function(compare_output) {
     return(filtered_df)
 }
 
+
+overclustering_correction <- function(
+        homogeneity_df, orthogroup_df, update_score = TRUE
+) {
+    
+    # Calculate % of domains present in 2+ OGs
+    dispersal <- split(orthogroup_df, orthogroup_df$Annotation)
+    dispersal <- unlist(lapply(dispersal, function(x) {
+        return(length(unique(x$Orthogroup)))
+    }))
+    
+    dispersal_freq <- (sum(dispersal > 1) / length(dispersal))
+    
+    if(update_score) {
+        homogeneity_df$Score <- homogeneity_df$Score / dispersal_freq
+    } else {
+        homogeneity_df$Dispersal <- dispersal_freq
+        homogeneity_df$Score_c <- homogeneity_df$Score - dispersal_freq
+    }
+    
+    return(homogeneity_df)
+}
+
+
+calculate_H_with_terms <- function(
+        orthogroup_df, max_size = 200, get_mean = TRUE,
+        correct_overclustering = TRUE, update_score = TRUE
+) {
+    
+    by_og <- split(orthogroup_df, orthogroup_df$Orthogroup)
+    
+    # Calculate OG sizes
+    og_sizes <- vapply(by_og, function(x) {
+        return(length(unique(x$Gene)))
+    }, numeric(1))
+    perc_excluded <- (sum(og_sizes >= max_size) / length(og_sizes)) * 100
+    
+    # Calculate homogeneity scores
+    sdice <- Reduce(rbind, lapply(by_og, function(x) {
+        
+        ngenes <- length(unique(x$Gene))
+        og <- unique(x$Orthogroup)
+        
+        x <- x[!is.na(x$Annotation), ]
+        annot_genes <- unique(x$Gene)
+        
+        scores_df <- NULL
+        if(length(annot_genes) > 1 & ngenes <= max_size) {
+            
+            # Calculate Sorensen-Dice indices for all pairwise combinations
+            combinations <- utils::combn(annot_genes, 2, simplify = FALSE)
+            scores <- lapply(combinations, function(y) {
+                d1 <- x$Annotation[x$Gene == y[1]]
+                d2 <- x$Annotation[x$Gene == y[2]]
+                
+                numerator <- 2 * length(intersect(d1, d2))
+                denominator <- length(d1) + length(d2)
+                s <- round(numerator / denominator, 2)
+                return(s)
+            })
+            scores <- unlist(scores) - perc_excluded * 0.1
+            if(get_mean) { scores <- mean(scores) }
+            
+            scores_df <- data.frame(
+                Orthogroup = og,
+                Score = scores
+            )
+        }
+        return(scores_df)
+    }))
+    
+    # Account for overclustering
+    if(correct_overclustering) {
+        sdice <- overclustering_correction(sdice, orthogroup_df, update_score)
+    }
+    
+    
+    return(sdice)
+}
+
